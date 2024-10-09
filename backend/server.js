@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.ATLAS_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.ATLAS_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error('Could not connect to MongoDB...', err));
  
