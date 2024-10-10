@@ -14,8 +14,12 @@ mongoose.connect(process.env.ATLAS_URI)
   .catch(err => console.error('Could not connect to MongoDB...', err));
  
 app.use('/api/auth', authRoutes);
+
+app.use("/api/dashboard", require("./routes/dashboardRoutes"));
+
+app.use("/api/profile", require("./routes/profileRoutes"));
   
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

@@ -60,11 +60,50 @@ exports.signin = async (req, res) => {
         name: user.name,
         email: user.email,
       },
+      redirectTo: "/dashboard",
     });
   } catch (error) {
     res.status(400).json({
       status: "fail",
       message: error.message,
+    });
+  }
+};
+
+exports.protect = async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  if (!token) {
+    return res.status(401).json({
+      status: "fail",
+      message: "You are not logged in! Please log in to get access.",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return res.status(401).json({
+        status: "fail",
+        message: "The user belonging to this token does no longer exist.",
+      });
+    }
+
+    req.user = currentUser;
+    next();
+  } catch (error) {
+    res.status(401).json({
+      status: "fail",
+      message: "Invalid token or token has expired.",
     });
   }
 };

@@ -20,8 +20,12 @@ const SignInPage = () => {
           password,
         }
       );
-      localStorage.setItem("token", response.data.token);
-      navigate("/dashboard");
+      if (response && response.data) {
+        localStorage.setItem("token", response.data.token);
+        if (response.data.redirectTo) {
+          navigate(response.data.redirectTo);
+        }
+      }
     } catch (err) {
       setError(
         err.response.data.message || "An error occurred during sign in."
