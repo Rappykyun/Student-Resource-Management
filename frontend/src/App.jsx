@@ -4,6 +4,7 @@ import LandingPage from "./pages/LandingPage";
 import SignUpPage from "./pages/SignUpPage";
 import SignInPage from "./pages/SignInPage";
 import DashboardPage from "./pages/DashboardPage";
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
+      <Toaster />
     </Router>
   );
 }
