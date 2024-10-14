@@ -48,8 +48,6 @@ exports.getDashboardData = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Here you would typically fetch real data from your database
-    // For now, we'll send dummy data
     const dashboardData = {
       courses: [
         { id: 1, name: "Mathematics 101" },
