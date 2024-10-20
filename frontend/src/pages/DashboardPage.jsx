@@ -196,6 +196,7 @@ const Dashboard = () => {
                     <AvatarImage
                       src={userData.profilePicture}
                       alt={userData.name}
+                      key={userData.profilePicture}
                     />
                     <AvatarFallback>{userData.name?.charAt(0)}</AvatarFallback>
                   </Avatar>

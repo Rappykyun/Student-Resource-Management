@@ -50,9 +50,9 @@ exports.getDashboardData = async (req, res) => {
 
     const dashboardData = {
       courses: [
-        { id: 1, name: "Mathematics 101" },
-        { id: 2, name: "History 202" },
-        { id: 3, name: "Computer Science 303" },
+        { id: 1, name: "Javascipt Bootcamp" },
+        { id: 2, name: "Machine Learning Course" },
+        { id: 3, name: "Harvard CS50" },
       ],
       tasks: [
         { id: 1, title: "Math Assignment", due: "2024-10-15" },

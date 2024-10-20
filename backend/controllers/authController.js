@@ -59,6 +59,10 @@ exports.signin = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
+        phoneNumber: user.phoneNumber,
+        studentId: user.studentId,
       },
       redirectTo: "/dashboard",
     });
