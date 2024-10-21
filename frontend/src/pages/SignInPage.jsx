@@ -1,4 +1,4 @@
-import React from "react";
+import {useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -69,6 +69,12 @@ const SignInPage = () => {
       });
     }
   };
+    useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        navigate("/dashboard");
+      }
+    }, [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

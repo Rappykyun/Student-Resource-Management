@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -69,6 +69,8 @@ const Dashboard = () => {
           navigate("/");
           return;
         }
+
+
 
         const response = await axios.get(`${API_BASE_URL}/user/profile`, {
           headers: {
@@ -194,9 +196,7 @@ const Dashboard = () => {
                 >
                   <Avatar>
                     <AvatarImage
-                      src={userData.profilePicture}
-                      alt={userData.name}
-                      key={userData.profilePicture}
+                      src={`https://api.dicebear.com/6.x/initials/svg?seed=${userData.name}`}
                     />
                     <AvatarFallback>{userData.name?.charAt(0)}</AvatarFallback>
                   </Avatar>

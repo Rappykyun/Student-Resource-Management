@@ -4,7 +4,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/authRoutes");
 const courseRoutes = require("./routes/courseRoutes");
-
+const dashBoardRoutes = require("./routes/dashboardRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 const app = express();
 
 app.use(cors());
@@ -16,8 +17,8 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB...", err));
 
 app.use("/api/auth", authRoutes);
-app.use("/api/dashboard", require("./routes/dashboardRoutes"));
-app.use("/api/profile", require("./routes/profileRoutes"));
+app.use("/api/dashboard", dashBoardRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/courses", courseRoutes);
 
 const PORT = process.env.PORT || 5000;

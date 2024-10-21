@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -25,6 +25,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Mail, Lock } from "lucide-react";
 
+
+
 const formSchema = z
   .object({
     name: z.string().min(2, {
@@ -43,6 +45,7 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
+
 const SignUpPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,8 +57,9 @@ const SignUpPage = () => {
       password: "",
       confirmPassword: "",
     },
+  
   });
-
+  
   const onSubmit = async (values) => {
     try {
       const response = await axios.post(
@@ -84,7 +88,15 @@ const SignUpPage = () => {
     }
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+   },[navigate]);
+
   return (
+    
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
