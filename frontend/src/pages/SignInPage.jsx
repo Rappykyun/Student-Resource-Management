@@ -1,4 +1,4 @@
-import {useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -27,7 +27,7 @@ import { Loader2, Mail, Lock } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: "Di ma porget ang unang tilaw.",
   }),
   password: z.string().min(1, {
     message: "Password is required.",
@@ -54,8 +54,8 @@ const SignInPage = () => {
       if (response && response.data) {
         localStorage.setItem("token", response.data.token);
         toast({
-          title: "Sign In Successful",
-          description: "Welcome back!",
+          title: "Yehey, Edi wow!",
+          description: "Mabuhay ka hanggang gusto mo!",
         });
         navigate(response.data.redirectTo || "/dashboard");
       }
@@ -69,12 +69,12 @@ const SignInPage = () => {
       });
     }
   };
-    useEffect(() => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        navigate("/dashboard");
-      }
-    }, [navigate]);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
