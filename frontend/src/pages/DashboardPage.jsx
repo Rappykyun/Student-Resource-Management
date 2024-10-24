@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -12,6 +12,7 @@ import {
   Calendar,
   Bot,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,6 +37,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import DashboardSection from "@/components/DashboardSection";
 import CourseSection from "@/components/CourseSection";
+import ResourcesSection from "@/components/ResourcesSection";
+import AdminResourcesSection from "@/components/AdminResourcesSection";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -49,6 +52,7 @@ const Dashboard = () => {
     bio: "",
     phoneNumber: "",
     studentId: "",
+    isAdmin: false,
   });
   const navigate = useNavigate();
 
@@ -69,8 +73,6 @@ const Dashboard = () => {
           navigate("/");
           return;
         }
-
-
 
         const response = await axios.get(`${API_BASE_URL}/user/profile`, {
           headers: {
@@ -99,12 +101,20 @@ const Dashboard = () => {
     { icon: Settings, label: "Settings", key: "settings" },
   ];
 
+  if (userData.isAdmin) {
+    sidebarItems.push({ icon: ShieldCheck, label: "Admin", key: "admin" });
+  }
+
   const renderActiveSection = () => {
     switch (activeSection) {
       case "dashboard":
         return <DashboardSection />;
       case "courses":
         return <CourseSection />;
+      case "resources":
+        return <ResourcesSection />;
+      case "admin":
+        return userData.isAdmin ? <AdminResourcesSection /> : null;
       default:
         return <DashboardSection />;
     }

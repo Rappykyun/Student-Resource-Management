@@ -63,6 +63,7 @@ exports.signin = async (req, res) => {
         bio: user.bio,
         phoneNumber: user.phoneNumber,
         studentId: user.studentId,
+        isAdmin: user.isAdmin,
       },
       redirectTo: "/dashboard",
     });
@@ -103,6 +104,7 @@ exports.protect = async (req, res, next) => {
     }
 
     req.user = currentUser;
+    req.user.admin = decoded.isAdmin;
     next();
   } catch (error) {
     res.status(401).json({

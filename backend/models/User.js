@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: "", 
+      default: "",
     },
     bio: {
       type: String,
@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["student", "admin"],
       default: "student",
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

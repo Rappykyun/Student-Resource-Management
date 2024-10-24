@@ -14,7 +14,6 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        
       </Routes>
       <Toaster />
     </Router>

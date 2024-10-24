@@ -76,7 +76,7 @@ const LandingPage = () => {
             AI-Powered Learning
           </Badge>
           <motion.h1
-            className="text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60"
+            className="text-5xl font-extrabold mb-4 bg-clip-text  text-gray-800"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -84,7 +84,7 @@ const LandingPage = () => {
             Student Resource Management System
           </motion.h1>
           <motion.p
-            className="text-xl text-gray-600 mb-8"
+            className="text-xl text-gray-700 mb-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -123,21 +123,6 @@ const LandingPage = () => {
                 />
               ))}
             </div>
-          </TabsContent>
-          <TabsContent value="demo">
-            <Card>
-              <CardContent className="pt-6">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-500">Demo Video Placeholder</p>
-                  </div>
-                </motion.div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
