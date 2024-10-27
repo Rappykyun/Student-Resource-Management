@@ -1,16 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Loader } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -253,8 +244,14 @@ const handleDeleteAssignment = async (id) => {
 };
 
   if (loading) {
-    return <div>Loading...</div>;
-  }
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Loader className="h-6 w-6 animate-spin" />
+      </div>
+    );
+
+        
+  };
 
   return (
     <div className="space-y-6">

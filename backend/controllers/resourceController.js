@@ -64,6 +64,83 @@ exports.getAllResources = async (req, res) => {
   }
 };
 
+// Add the missing getResource controller
+exports.getResource = async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id)
+      .populate("submittedBy", "name expertise")
+      .populate("reviews");
+
+    if (!resource) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Resource not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: { resource },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: error.message,
+    });
+  }
+};
+
+// Add the missing updateResource controller
+exports.updateResource = async (req, res) => {
+  try {
+    const resource = await Resource.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!resource) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Resource not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: { resource },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: error.message,
+    });
+  }
+};
+
+// Add the missing deleteResource controller
+exports.deleteResource = async (req, res) => {
+  try {
+    const resource = await Resource.findByIdAndDelete(req.params.id);
+
+    if (!resource) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Resource not found",
+      });
+    }
+
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: error.message,
+    });
+  }
+};
+
 exports.searchResources = async (req, res) => {
   try {
     const { query, category, tags, difficulty, topic } = req.query;
@@ -136,7 +213,6 @@ exports.reviewResource = async (req, res) => {
   }
 };
 
-// Admin controllers
 exports.getAllPendingResources = async (req, res) => {
   try {
     const resources = await Resource.find({ approved: false })
@@ -187,4 +263,11 @@ exports.approveResource = async (req, res) => {
       message: error.message,
     });
   }
+};
+
+
+const calculateAverageRating = (reviews) => {
+  if (reviews.length === 0) return 0;
+  const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+  return (sum / reviews.length).toFixed(1);
 };

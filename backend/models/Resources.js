@@ -34,24 +34,24 @@ const resourceSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please specify a category"],
       enum: [
-        "Frontend",
-        "Backend",
-        "DevOps",
-        "Design",
-        "Data Structures",
-        "Algorithms",
-        "System Design",
-        "Database",
-        "Security",
-        "Machine Learning",
-        "Cloud Computing",
-        "Other",
+        "frontend",
+        "backend",
+        "devOps",
+        "design",
+        "data Structures",
+        "algorithms",
+        "system Design",
+        "database",
+        "security",
+        "machine Learning",
+        "cloud Computing",
+        "other",
       ],
     },
     difficulty: {
       type: String,
       required: true,
-      enum: ["Beginner", "Intermediate", "Advanced"],
+      enum: ["beginner", "intermediate", "advanced"],
     },
     topics: [
       {
@@ -107,7 +107,6 @@ const resourceSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for better search performance
 resourceSchema.index({ title: "text", description: "text", topics: "text" });
 resourceSchema.index({ category: 1, difficulty: 1, approved: 1 });
 resourceSchema.index({ tags: 1 });

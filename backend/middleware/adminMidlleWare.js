@@ -1,10 +1,9 @@
-const AppError = require("../utils/appError");
-
 exports.restrictToAdmin = (req, res, next) => {
   if (!req.user.isAdmin) {
-    return next(
-      new AppError("You do not have permission to perform this action", 403)
-    );
+    return res.status(403).json({
+      status: "fail",
+      message: "You do not have permission to perform this action",
+    });
   }
   next();
 };

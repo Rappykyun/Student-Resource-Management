@@ -6,6 +6,7 @@ const authRoutes = require("./routes/authRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const dashBoardRoutes = require("./routes/dashboardRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const resourceRoutes = require("./routes/resourcesRoutes");
 const app = express();
 
 app.use(cors());
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashBoardRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/resources", resourceRoutes);
 
 const PORT = process.env.PORT || 5000;
 

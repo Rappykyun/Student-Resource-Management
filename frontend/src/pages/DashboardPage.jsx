@@ -52,7 +52,7 @@ const Dashboard = () => {
     bio: "",
     phoneNumber: "",
     studentId: "",
-    isAdmin: false,
+    isAdmin: true,
   });
   const navigate = useNavigate();
 
