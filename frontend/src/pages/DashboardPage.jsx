@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/sheet";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 import DashboardSection from "@/components/DashboardSection";
 import CourseSection from "@/components/CourseSection";
 import ResourcesSection from "@/components/ResourcesSection";
@@ -52,8 +51,9 @@ const Dashboard = () => {
     bio: "",
     phoneNumber: "",
     studentId: "",
-    isAdmin: true,
+    isAdmin: false,
   });
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -74,25 +74,29 @@ const Dashboard = () => {
           return;
         }
 
-        const response = await axios.get(`${API_BASE_URL}/user/profile`, {
+        const response = await axios.get(`${API_BASE_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setUserData(response.data.user);
+        // Correctly access the nested user data
+        setUserData(response.data.data.user);
       } catch (error) {
         console.error("Error fetching user data:", error);
         if (error.response?.status === 401) {
           navigate("/");
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchUserData();
   }, [navigate]);
 
-  const sidebarItems = [
+  // Base sidebar items that are always shown
+  const baseSidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" },
     { icon: BookOpen, label: "Courses", key: "courses" },
     { icon: FileText, label: "Resources", key: "resources" },
@@ -101,9 +105,10 @@ const Dashboard = () => {
     { icon: Settings, label: "Settings", key: "settings" },
   ];
 
-  if (userData.isAdmin) {
-    sidebarItems.push({ icon: ShieldCheck, label: "Admin", key: "admin" });
-  }
+  // Compute sidebar items based on user role
+  const sidebarItems = userData?.isAdmin
+    ? [...baseSidebarItems, { icon: ShieldCheck, label: "Admin", key: "admin" }]
+    : baseSidebarItems;
 
   const renderActiveSection = () => {
     switch (activeSection) {
@@ -114,11 +119,19 @@ const Dashboard = () => {
       case "resources":
         return <ResourcesSection />;
       case "admin":
-        return userData.isAdmin ? <AdminResourcesSection /> : null;
+        return userData?.isAdmin ? <AdminResourcesSection /> : null;
       default:
         return <DashboardSection />;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">

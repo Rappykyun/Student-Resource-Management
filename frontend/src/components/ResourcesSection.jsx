@@ -54,8 +54,8 @@ export const ResourcesSection = () => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all"); // Changed from empty string
-  const [selectedDifficulty, setSelectedDifficulty] = useState("all"); // Changed from empty string
+  const [selectedCategory, setSelectedCategory] = useState("all"); 
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all"); 
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [newResource, setNewResource] = useState({
     title: "",
@@ -86,8 +86,6 @@ export const ResourcesSection = () => {
       if (!token) {
         throw new Error("No authentication token found");
       }
-
-      // Format the resource data
       const formattedResource = {
         ...newResource,
         topics: newResource.topics
@@ -106,10 +104,10 @@ export const ResourcesSection = () => {
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
-        // Ensure these match exactly what the backend expects
+  
         difficulty: newResource.difficulty.toLowerCase(),
         category: newResource.category.toLowerCase(),
-        approved: false, // Set initial approval status
+        approved: false, 
       };
 
       // Make the API request

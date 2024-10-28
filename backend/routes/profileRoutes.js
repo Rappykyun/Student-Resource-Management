@@ -5,6 +5,9 @@ const profileController = require("../controllers/profileController");
 const router = express.Router();
 
 router.use(protect);
-router.patch("/update", profileController.updateProfile);
+router.get("/",profileController.getProfile);
+router.patch("/", profileController.updateProfile);
+
+
 
 module.exports = router;

@@ -37,3 +37,36 @@ exports.updateProfile = async (req, res) => {
     });
   }
 };
+
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          profilePicture: user.profilePicture,
+          bio: user.bio,
+          phoneNumber: user.phoneNumber,
+          profilePicture: user.profilePicture,
+          studentId: user.studentId,
+          isAdmin: user.isAdmin,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: error.message,
+    })
+  }
+};

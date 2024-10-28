@@ -224,24 +224,24 @@ const CourseSection = () => {
     }
   };
 
-const handleDeleteAssignment = async (id) => {
-  try {
-    const token = localStorage.getItem("token");
-    await axios.delete(
-      `${API_BASE_URL}/courses/${selectedCourse._id}/assignments/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    setAssignments(assignments.filter((assignment) => assignment._id !== id));
-    setError(null);
-  } catch (error) {
-    console.error("Error deleting assignment:", error);
-    setError("Failed to delete assignment. Please try again later.");
-  }
-};
+  const handleDeleteAssignment = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${API_BASE_URL}/courses/${selectedCourse._id}/assignments/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setAssignments(assignments.filter((assignment) => assignment._id !== id));
+      setError(null);
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
+      setError("Failed to delete assignment. Please try again later.");
+    }
+  };
 
   if (loading) {
     return (
@@ -249,9 +249,7 @@ const handleDeleteAssignment = async (id) => {
         <Loader className="h-6 w-6 animate-spin" />
       </div>
     );
-
-        
-  };
+  }
 
   return (
     <div className="space-y-6">
