@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   Search,
@@ -41,7 +41,7 @@ import AdminResourcesSection from "@/components/AdminResourcesSection";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
-const Dashboard = () => {
+export default function Dashboard() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("dashboard");
   const [userData, setUserData] = useState({
@@ -54,11 +54,11 @@ const Dashboard = () => {
     isAdmin: false,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
+  const router = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/");
+    router.push("/");
   };
 
   const handleProfileUpdate = (updatedUser) => {
@@ -70,7 +70,7 @@ const Dashboard = () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          navigate("/");
+          router.push("/");
           return;
         }
 
@@ -80,12 +80,11 @@ const Dashboard = () => {
           },
         });
 
-        // Correctly access the nested user data
         setUserData(response.data.data.user);
       } catch (error) {
         console.error("Error fetching user data:", error);
         if (error.response?.status === 401) {
-          navigate("/");
+          router.push("/");
         }
       } finally {
         setIsLoading(false);
@@ -93,9 +92,8 @@ const Dashboard = () => {
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, [router]);
 
- 
   const baseSidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" },
     { icon: BookOpen, label: "Courses", key: "courses" },
@@ -104,7 +102,6 @@ const Dashboard = () => {
     { icon: Bot, label: "AI Assistant", key: "aiAssistant" },
     { icon: Settings, label: "Settings", key: "settings" },
   ];
-
 
   const sidebarItems = userData?.isAdmin
     ? [...baseSidebarItems, { icon: ShieldCheck, label: "Admin", key: "admin" }]
@@ -127,22 +124,27 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        Loading...
+      <div className="flex h-screen items-center justify-center bg-gradient-to-r from-blue-100 to-purple-100">
+        <div className="animate-pulse text-3xl font-bold text-primary">
+          Loading...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gradient-to-r from-blue-50 to-purple-50">
       {/* Desktop Sidebar */}
       <motion.aside
-        className="hidden lg:flex flex-col w-64 bg-white border-r"
+        className="hidden lg:flex flex-col w-64 bg-white border-r shadow-lg"
         initial={{ x: -250 }}
         animate={{ x: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-primary">StudyMate.</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            StudyMate.
+          </h2>
         </div>
         <ScrollArea className="flex-1 py-2">
           <nav className="space-y-1 px-2">
@@ -150,8 +152,10 @@ const Dashboard = () => {
               <Button
                 key={item.key}
                 variant="ghost"
-                className={`w-full justify-start ${
-                  activeSection === item.key ? "bg-secondary" : ""
+                className={`w-full justify-start transition-all duration-200 ease-in-out ${
+                  activeSection === item.key
+                    ? "bg-gradient-to-r from-blue-100 to-purple-100 text-primary font-medium"
+                    : "hover:bg-gray-100"
                 }`}
                 onClick={() => setActiveSection(item.key)}
               >
@@ -166,21 +170,29 @@ const Dashboard = () => {
       {/* Mobile Header */}
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="lg:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden absolute top-4 left-4 z-50"
+          >
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left">
+        <SheetContent side="left" className="bg-white">
           <SheetHeader>
-            <SheetTitle>StudyMate.</SheetTitle>
+            <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              StudyMate.
+            </SheetTitle>
           </SheetHeader>
           <nav className="flex flex-col space-y-1 mt-4">
             {sidebarItems.map((item) => (
               <Button
                 key={item.key}
                 variant="ghost"
-                className={`justify-start ${
-                  activeSection === item.key ? "bg-secondary" : ""
+                className={`justify-start transition-all duration-200 ease-in-out ${
+                  activeSection === item.key
+                    ? "bg-gradient-to-r from-blue-100 to-purple-100 text-primary font-medium"
+                    : "hover:bg-gray-100"
                 }`}
                 onClick={() => {
                   setActiveSection(item.key);
@@ -198,17 +210,24 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-8">
+        <header className="h-16 border-b bg-white shadow-sm flex items-center justify-between px-4 lg:px-8">
           <div className="flex items-center flex-1">
             <form className="flex-1 max-w-lg">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search resources..." className="pl-8" />
+                <Input
+                  placeholder="Search resources..."
+                  className="pl-8 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-blue-400"
+                />
               </div>
             </form>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-gray-100"
+            >
               <Bell className="h-5 w-5" />
             </Button>
             <DropdownMenu>
@@ -225,13 +244,19 @@ const Dashboard = () => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
+                <DropdownMenuItem
+                  onClick={() => setIsProfileOpen(true)}
+                  className="cursor-pointer"
+                >
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer text-red-600"
+                >
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -242,13 +267,18 @@ const Dashboard = () => {
         {/* Main Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            <motion.div
-              className="grid gap-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {renderActiveSection()}
-            </motion.div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeSection}
+                className="grid gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                {renderActiveSection()}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>
@@ -262,6 +292,4 @@ const Dashboard = () => {
       />
     </div>
   );
-};
-
-export default Dashboard;
+}
