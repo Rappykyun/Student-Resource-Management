@@ -11,8 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader } from "lucide-react";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -22,31 +22,34 @@ const DashboardSection = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        const response = await axios.get(`${API_BASE_URL}/dashboard/data`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setDashboardData(response.data.data);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setError("Failed to fetch dashboard data. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE_URL}/dashboard/data`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setDashboardData(response.data.data);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setError("Failed to fetch dashboard data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Loader className="h-6 w-6 animate-spin" />
+      </div>
+    );
   }
 
   if (error) {
@@ -109,7 +112,6 @@ const DashboardSection = () => {
           </CardContent>
         </Card>
 
-        {/* Study Sessions Card */}
         <Card>
           <CardHeader>
             <CardTitle>Todays Schedule</CardTitle>
@@ -132,25 +134,6 @@ const DashboardSection = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* AI Assistant Card */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Bot className="mr-2 h-5 w-5" />
-            AI Study Assistant
-          </CardTitle>
-          <CardDescription>Get help with your studies</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-secondary p-4 rounded-lg flex items-center justify-between">
-            <p className="text-secondary-foreground">
-              Ask me anything about your courses or study material!
-            </p>
-            <Button>Start Chat</Button>
-          </div>
-        </CardContent>
-      </Card>
     </>
   );
 };

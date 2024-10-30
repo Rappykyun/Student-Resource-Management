@@ -25,8 +25,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Mail, Lock } from "lucide-react";
 
-
-
 const formSchema = z
   .object({
     name: z.string().min(2, {
@@ -45,7 +43,6 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
-
 const SignUpPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -57,9 +54,8 @@ const SignUpPage = () => {
       password: "",
       confirmPassword: "",
     },
-  
   });
-  
+
   const onSubmit = async (values) => {
     try {
       const response = await axios.post(
@@ -93,23 +89,23 @@ const SignUpPage = () => {
     if (token) {
       navigate("/dashboard");
     }
-   },[navigate]);
+  }, [navigate]);
 
   return (
-    
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="w-full max-w-[350px] sm:max-w-[400px]"
       >
-        <Card className="w-[400px]">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
+        <Card className="shadow-lg">
+          <CardHeader className="space-y-1 px-6 py-4 sm:py-6">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-center">
               Sign Up
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -120,18 +116,20 @@ const SignUpPage = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        Name
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             placeholder="Enter your name"
-                            className="pl-8"
+                            className="pl-9 h-10 text-sm"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -140,18 +138,20 @@ const SignUpPage = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        Email
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             placeholder="Enter your email"
-                            className="pl-8"
+                            className="pl-9 h-10 text-sm"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -160,19 +160,21 @@ const SignUpPage = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        Password
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
                             placeholder="Enter your password"
-                            className="pl-8"
+                            className="pl-9 h-10 text-sm"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -181,32 +183,34 @@ const SignUpPage = () => {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        Confirm Password
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
                             placeholder="Confirm your password"
-                            className="pl-8"
+                            className="pl-9 h-10 text-sm"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full h-10 text-sm font-medium transition-colors"
                   disabled={form.formState.isSubmitting}
                 >
                   {form.formState.isSubmitting ? (
-                    <>
+                    <span className="flex items-center justify-center">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing Up...
-                    </>
+                    </span>
                   ) : (
                     "Sign Up"
                   )}
@@ -214,13 +218,18 @@ const SignUpPage = () => {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <a href="/signin" className="text-primary hover:underline">
-                Sign in
-              </a>
-            </p>
+          <CardFooter className="flex flex-col gap-4 px-6 py-4 sm:py-6">
+            <div className="text-center">
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <a
+                  href="/signin"
+                  className="text-primary hover:underline font-medium transition-colors"
+                >
+                  Sign in
+                </a>
+              </p>
+            </div>
           </CardFooter>
         </Card>
       </motion.div>

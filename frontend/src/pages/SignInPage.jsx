@@ -1,4 +1,4 @@
-import {useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -69,27 +69,29 @@ const SignInPage = () => {
       });
     }
   };
-    useEffect(() => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        navigate("/dashboard");
-      }
-    }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="w-full max-w-[350px] sm:max-w-[400px]"
       >
-        <Card className="w-[350px]">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
+        <Card className="shadow-lg">
+          <CardHeader className="space-y-1 px-6 py-4 sm:py-6">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-center">
               Sign In
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-6">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -100,18 +102,20 @@ const SignInPage = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        Email
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             placeholder="Enter your email"
-                            className="pl-8"
+                            className="pl-9 h-10 text-sm"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
@@ -120,32 +124,34 @@ const SignInPage = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-sm font-medium">
+                        Password
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
                             placeholder="Enter your password"
-                            className="pl-8"
+                            className="pl-9 h-10 text-sm"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full h-10 text-sm font-medium transition-colors"
                   disabled={form.formState.isSubmitting}
                 >
                   {form.formState.isSubmitting ? (
-                    <>
+                    <span className="flex items-center justify-center">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing In...
-                    </>
+                    </span>
                   ) : (
                     "Sign In"
                   )}
@@ -153,13 +159,18 @@ const SignInPage = () => {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              Dont have an account?{" "}
-              <a href="/signup" className="text-primary hover:underline">
-                Sign up
-              </a>
-            </p>
+          <CardFooter className="flex flex-col gap-4 px-6 py-4 sm:py-6">
+            <div className="text-center">
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Don&apos;t have an account?{" "}
+                <a
+                  href="/signup"
+                  className="text-primary hover:underline font-medium transition-colors"
+                >
+                  Sign up
+                </a>
+              </p>
+            </div>
           </CardFooter>
         </Card>
       </motion.div>

@@ -95,7 +95,7 @@ const Dashboard = () => {
     fetchUserData();
   }, [navigate]);
 
-  // Base sidebar items that are always shown
+ 
   const baseSidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" },
     { icon: BookOpen, label: "Courses", key: "courses" },
@@ -105,7 +105,7 @@ const Dashboard = () => {
     { icon: Settings, label: "Settings", key: "settings" },
   ];
 
-  // Compute sidebar items based on user role
+
   const sidebarItems = userData?.isAdmin
     ? [...baseSidebarItems, { icon: ShieldCheck, label: "Admin", key: "admin" }]
     : baseSidebarItems;

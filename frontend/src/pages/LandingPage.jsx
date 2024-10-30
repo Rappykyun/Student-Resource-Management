@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, BookOpen, Clock, Bot, Users, Brain } from "lucide-react";
@@ -14,21 +13,23 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const FeatureCard = ({ icon: Icon, title, description, delay }) => (
   <motion.div
-    initial={{ opacity: 0, y: 50 }}
+    initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay }}
-    className="h-full w-full"
+    transition={{ delay, duration: 0.5 }}
+    className="h-full"
   >
-    <Card className="h-full hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-      <CardHeader className="space-y-4 p-6">
-        <div className="rounded-full bg-primary/10 w-12 h-12 flex items-center justify-center">
-          <Icon className="w-6 h-6 text-primary" />
+    <Card className="h-full transition-transform duration-300 hover:scale-105">
+      <CardHeader className="space-y-4 p-4 sm:p-6">
+        <div className="rounded-full bg-primary/10 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
         </div>
         <div className="space-y-2">
-          <CardTitle className="text-lg sm:text-xl font-bold">
+          <CardTitle className="text-base sm:text-lg lg:text-xl font-bold">
             {title}
           </CardTitle>
-          <CardDescription className="text-sm">{description}</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">
+            {description}
+          </CardDescription>
         </div>
       </CardHeader>
     </Card>
@@ -77,36 +78,34 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-     
-      <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
-
+      <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 md:py-12">
         <motion.div
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-8 md:mb-12"
+          className="text-center mb-6 sm:mb-8 md:mb-12"
         >
- 
-          <div className="flex justify-center mb-6">
-            <Badge variant="secondary" className="px-4 py-1 text-sm">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <Badge
+              variant="secondary"
+              className="px-3 py-1 text-xs sm:px-4 sm:text-sm"
+            >
               AI-Powered Learning Platform
             </Badge>
           </div>
 
           <motion.h1
-            className="text-3xl md:text-5xl font-extrabold mb-4 text-gray-800 leading-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 sm:mb-4 text-gray-800 leading-tight px-2"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5 }}
           >
             Student Resource
-            <br className="hidden md:block" />
-            Management System
+            <span className="block mt-1">Management System</span>
           </motion.h1>
 
-
           <motion.p
-            className="text-base md:text-xl text-gray-600 max-w-2xl mx-auto px-4 mb-8"
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto px-4 mb-6 sm:mb-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -115,9 +114,8 @@ const LandingPage = () => {
             resource management tools designed for modern students.
           </motion.p>
 
-
           <motion.div
-            className="flex flex-col md:flex-row justify-center items-center gap-4"
+            className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -125,7 +123,7 @@ const LandingPage = () => {
             <Button
               asChild
               size="lg"
-              className="w-full md:w-auto min-w-[200px]"
+              className="w-full sm:w-auto min-w-[200px] text-sm sm:text-base"
             >
               <Link to="/signup">Get Started Free</Link>
             </Button>
@@ -133,27 +131,28 @@ const LandingPage = () => {
               asChild
               variant="outline"
               size="lg"
-              className="w-full md:w-auto min-w-[200px]"
+              className="w-full sm:w-auto min-w-[200px] text-sm sm:text-base"
             >
               <Link to="/signin">Sign In</Link>
             </Button>
           </motion.div>
         </motion.div>
 
-
-        <div className="mt-12">
+        <div className="mt-8 sm:mt-12">
           <Tabs defaultValue="features" className="w-full">
-
-            <div className="flex justify-center mb-8">
-              <TabsList className="w-full max-w-xs">
-                <TabsTrigger value="features" className="w-full">
+            <div className="flex justify-center mb-6 sm:mb-8">
+              <TabsList className="w-full max-w-[280px] sm:max-w-xs">
+                <TabsTrigger
+                  value="features"
+                  className="w-full text-xs sm:text-sm"
+                >
                   Key Features
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="features" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
+            <TabsContent value="features" className="mt-4 sm:mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-4 md:px-0">
                 {features.map((feature, index) => (
                   <FeatureCard
                     key={index}

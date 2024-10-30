@@ -69,6 +69,11 @@ export const ResourcesSection = () => {
     tags: "",
   });
 
+    useEffect(() => {
+      fetchResources();
+    }, []); 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -196,6 +201,15 @@ export const ResourcesSection = () => {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Loader className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-6">

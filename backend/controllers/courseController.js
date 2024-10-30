@@ -80,6 +80,32 @@ exports.getNotes = async (req, res) => {
     res.status(400).json({ status: "fail", message: error.message });
   }
 };
+exports.updateNote = async (req, res) => {
+  try {
+    const note = await Note.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!note) {
+      return res
+        .status(404)
+        .json({ status: "fail", message: "Note not found" });
+    }
+    res.status(200).json({ status: "success", data: { note } });
+  } catch (error) {
+    res.status(400).json({ status: "fail", message: error.message });
+  }
+};  
+
+exports.deleteNote = async (req, res) => {
+  try {
+    await Note.findOneAndDelete({ _id: req.params.id, user: req.user._id
+    })
+  } catch (error) {
+    
+  }
+}
 
 exports.addAssignment = async (req, res) => {
   try {
