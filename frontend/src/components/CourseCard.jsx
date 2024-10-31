@@ -19,13 +19,13 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
-const CourseCard = ({
+export default function CourseCard({
   course,
   onEdit,
   onDelete,
   onViewNotes,
   onViewAssignments,
-}) => {
+}) {
   const getInitials = (name) => {
     return name
       .split(" ")
@@ -60,9 +60,9 @@ const CourseCard = ({
     );
 
     return (
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+      <div className="w-full bg-gray-200 rounded-full h-1.5 mb-4 overflow-hidden">
         <div
-          className="bg-blue-600 h-2.5 rounded-full"
+          className="bg-blue-600 h-1.5 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
         ></div>
       </div>
@@ -70,17 +70,17 @@ const CourseCard = ({
   };
 
   return (
-    <Card className="w-full max-w-md hover:shadow-lg transition-all duration-300 bg-white">
-      <CardHeader className="pb-2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-20"></div>
+    <Card className="w-full max-w-md hover:shadow-lg transition-all duration-300 bg-white overflow-hidden group">
+      <CardHeader className="pb-2 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-10 group-hover:opacity-20 transition-opacity duration-300"></div>
         <div className="relative z-10">
-          <div className="flex justify-between items-center mb-2">
-            <CardTitle className="text-2xl font-bold text-gray-800">
+          <div className="flex justify-between items-start mb-2">
+            <CardTitle className="text-2xl font-bold text-gray-800 group-hover:text-blue-700 transition-colors duration-300">
               {course.title}
             </CardTitle>
             {getStatusBadge()}
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mt-2">
             <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
               <AvatarImage
                 src={`https://api.dicebear.com/6.x/initials/svg?seed=${course.professor}`}
@@ -111,44 +111,48 @@ const CourseCard = ({
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex flex-wrap gap-2 justify-between bg-gray-50 rounded-b-lg">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onViewNotes(course._id)}
-          className="flex-1 bg-white hover:bg-blue-50 text-blue-600 border-blue-200"
-        >
-          <BookOpenIcon className="mr-2 h-4 w-4" /> Notes
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onViewAssignments(course._id)}
-          className="flex-1 bg-white hover:bg-purple-50 text-purple-600 border-purple-200"
-        >
-          <GraduationCapIcon className="mr-2 h-4 w-4" /> Assignments
-        </Button>
-        <div className="flex gap-2 mt-2 w-full">
+      <CardFooter className="flex flex-wrap gap-2 justify-between bg-gray-50 rounded-b-lg p-4">
+        <div className="flex gap-2 w-full">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewNotes(course._id)}
+            className="flex-1 bg-white hover:bg-blue-50 text-blue-600 border-blue-200 transition-colors duration-300"
+          >
+            <BookOpenIcon className="mr-2 h-4 w-4" />
+            Notes
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewAssignments(course._id)}
+            className="flex-1 bg-white hover:bg-purple-50 text-purple-600 border-purple-200 transition-colors duration-300"
+          >
+            <GraduationCapIcon className="mr-2 h-4 w-4" />
+            Assignments
+          </Button>
+        </div>
+        <div className="flex gap-2 w-full mt-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onEdit(course)}
-            className="flex-1"
+            className="flex-1 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-300"
           >
-            <EditIcon className="mr-2 h-4 w-4" /> Edit
+            <EditIcon className="mr-2 h-4 w-4" />
+            Edit
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onDelete(course._id)}
-            className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-300"
           >
-            <TrashIcon className="mr-2 h-4 w-4" /> Delete
+            <TrashIcon className="mr-2 h-4 w-4" />
+            Delete
           </Button>
         </div>
       </CardFooter>
     </Card>
   );
-};
-
-export default CourseCard;
+}

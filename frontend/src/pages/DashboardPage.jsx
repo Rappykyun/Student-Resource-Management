@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,8 @@ import {
   Bot,
   Settings,
   ShieldCheck,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,10 +36,13 @@ import {
 } from "@/components/ui/sheet";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
 import DashboardSection from "@/components/DashboardSection";
 import CourseSection from "@/components/CourseSection";
 import ResourcesSection from "@/components/ResourcesSection";
 import AdminResourcesSection from "@/components/AdminResourcesSection";
+
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -54,15 +59,30 @@ export default function Dashboard() {
     isAdmin: false,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const router = useNavigate();
+  const { toast } = useToast();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     router.push("/");
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account.",
+    });
   };
 
   const handleProfileUpdate = (updatedUser) => {
     setUserData(updatedUser);
+    toast({
+      title: "Profile updated",
+      description: "Your profile has been successfully updated.",
+    });
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+    document.documentElement.classList.toggle("dark");
   };
 
   useEffect(() => {
@@ -115,6 +135,14 @@ export default function Dashboard() {
         return <CourseSection />;
       case "resources":
         return <ResourcesSection />;
+
+      case "settings":
+        return (
+          <SettingsSection
+            userData={userData}
+            onProfileUpdate={handleProfileUpdate}
+          />
+        );
       case "admin":
         return userData?.isAdmin ? <AdminResourcesSection /> : null;
       default:
@@ -124,7 +152,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-r from-blue-100 to-purple-100">
+      <div className="flex h-screen items-center justify-center bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
         <div className="animate-pulse text-3xl font-bold text-primary">
           Loading...
         </div>
@@ -133,10 +161,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-r from-blue-50 to-purple-50">
+    <div
+      className={`flex h-screen ${
+        isDarkMode ? "dark" : ""
+      } bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800`}
+    >
       {/* Desktop Sidebar */}
       <motion.aside
-        className="hidden lg:flex flex-col w-64 bg-white border-r shadow-lg"
+        className="hidden lg:flex flex-col w-64 bg-white dark:bg-gray-800 border-r shadow-lg"
         initial={{ x: -250 }}
         animate={{ x: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -154,8 +186,8 @@ export default function Dashboard() {
                 variant="ghost"
                 className={`w-full justify-start transition-all duration-200 ease-in-out ${
                   activeSection === item.key
-                    ? "bg-gradient-to-r from-blue-100 to-purple-100 text-primary font-medium"
-                    : "hover:bg-gray-100"
+                    ? "bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 text-primary font-medium"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
                 onClick={() => setActiveSection(item.key)}
               >
@@ -178,7 +210,7 @@ export default function Dashboard() {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="bg-white">
+        <SheetContent side="left" className="bg-white dark:bg-gray-800">
           <SheetHeader>
             <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               StudyMate.
@@ -191,8 +223,8 @@ export default function Dashboard() {
                 variant="ghost"
                 className={`justify-start transition-all duration-200 ease-in-out ${
                   activeSection === item.key
-                    ? "bg-gradient-to-r from-blue-100 to-purple-100 text-primary font-medium"
-                    : "hover:bg-gray-100"
+                    ? "bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 text-primary font-medium"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
                 onClick={() => {
                   setActiveSection(item.key);
@@ -210,14 +242,14 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b bg-white shadow-sm flex items-center justify-between px-4 lg:px-8">
+        <header className="h-16 border-b bg-white dark:bg-gray-800 shadow-sm flex items-center justify-between px-4 lg:px-8">
           <div className="flex items-center flex-1">
             <form className="flex-1 max-w-lg">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search resources..."
-                  className="pl-8 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-blue-400"
+                  className="pl-8 rounded-full bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-blue-400"
                 />
               </div>
             </form>
@@ -226,7 +258,19 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full hover:bg-gray-100"
+              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={toggleDarkMode}
+            >
+              {isDarkMode ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <Bell className="h-5 w-5" />
             </Button>
