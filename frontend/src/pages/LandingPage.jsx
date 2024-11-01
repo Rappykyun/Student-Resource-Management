@@ -18,7 +18,7 @@ const FeatureCard = ({ icon: Icon, title, description, delay }) => (
     transition={{ delay, duration: 0.5 }}
     className="h-full"
   >
-    <Card className="h-full transition-transform duration-300 hover:scale-105">
+    <Card className="h-full transition-transform duration-300">
       <CardHeader className="space-y-4 p-4 sm:p-6">
         <div className="rounded-full bg-primary/10 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
           <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />

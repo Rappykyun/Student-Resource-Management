@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/sheet";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
+
 import { useToast } from "@/hooks/use-toast";
 import DashboardSection from "@/components/DashboardSection";
 import CourseSection from "@/components/CourseSection";
@@ -60,12 +60,12 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const router = useNavigate();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/");
+    navigate("/");
     toast({
       title: "Logged out successfully",
       description: "You have been logged out of your account.",
@@ -90,7 +90,7 @@ export default function Dashboard() {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          router.push("/");
+          navigate("/");
           return;
         }
 
@@ -104,7 +104,7 @@ export default function Dashboard() {
       } catch (error) {
         console.error("Error fetching user data:", error);
         if (error.response?.status === 401) {
-          router.push("/");
+          navigate("/");
         }
       } finally {
         setIsLoading(false);
@@ -112,7 +112,7 @@ export default function Dashboard() {
     };
 
     fetchUserData();
-  }, [router]);
+  }, [navigate]);
 
   const baseSidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" },
