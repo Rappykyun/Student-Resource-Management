@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Sun,
   Moon,
+  Loader
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -153,8 +154,8 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
-        <div className="animate-pulse text-3xl font-bold text-primary">
-          Loading...
+        <div className="flex justify-center items-center h-full">
+          <Loader className="h-6 w-6 animate-spin" />
         </div>
       </div>
     );
