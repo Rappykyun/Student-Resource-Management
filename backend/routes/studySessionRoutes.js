@@ -7,10 +7,9 @@ const router = express.Router();
 router.use(protect);
 
 router
-    .route("/")
-    .get(studySessionController.getSessions)
-    .post(studySessionController.createSession);
-
+  .route("/")
+  .get(studySessionController.getSessions)
+  .post(studySessionController.createSession);
 
 router
   .route("/:id")

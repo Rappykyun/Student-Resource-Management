@@ -1,4 +1,4 @@
-const StudySession = require("../models/studySessionModel");
+const StudySession = require("../models/StudySession");
 const Course = require("../models/Course");
 const { sendNotification } = require("../utils/sendNotification");
 const { catchError } = require("rxjs");

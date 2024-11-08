@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   Sun,
   Moon,
-  Loader
+  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,15 +35,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 import { useToast } from "@/hooks/use-toast";
 import DashboardSection from "@/components/DashboardSection";
 import CourseSection from "@/components/CourseSection";
 import ResourcesSection from "@/components/ResourcesSection";
 import AdminResourcesSection from "@/components/AdminResourcesSection";
-
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -61,6 +64,8 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -113,7 +118,25 @@ export default function Dashboard() {
     };
 
     fetchUserData();
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
   }, [navigate]);
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE_URL}/notifications`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setNotifications(response.data.notifications);
+      setUnreadCount(response.data.notifications.filter((n) => !n.read).length);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
 
   const baseSidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" },
@@ -268,13 +291,46 @@ export default function Dashboard() {
                 <Moon className="h-5 w-5" />
               )}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <Bell className="h-5 w-5" />
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Notifications</h4>
+                  <div className="divide-y divide-border">
+                    {notifications.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-2">
+                        No notifications
+                      </p>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification._id}
+                          className={`py-2 ${
+                            !notification.read ? "bg-muted/50" : ""
+                          }`}
+                        >
+                          <p className="text-sm">{notification.message}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(
+                              notification.createdAt
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

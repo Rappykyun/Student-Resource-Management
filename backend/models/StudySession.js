@@ -16,7 +16,7 @@ const studySessionSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: [exam_prep, homework, reeding, review, practice],
+    enum: ["exam_prep", "homework", "reading", "review", "practice"],
     required: true,
   },
   startTime: {
@@ -65,11 +65,11 @@ const studySessionSchema = new mongoose.Schema({
       type: String,
       enum: ["not_started", "in_progress", "completed", "missed"],
       default: "not_started",
-      },
-      completedAt: Date,
-      duration: Number,
-      notes: String
+    },
+    completedAt: Date,
+    duration: Number,
+    notes: String,
   },
 });
 
-export default mongoose.model("StudySession", studySessionSchema);
+module.exports = mongoose.model("StudySession", studySessionSchema);
