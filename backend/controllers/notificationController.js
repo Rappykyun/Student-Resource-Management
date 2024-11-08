@@ -1,6 +1,6 @@
 const Notification = require("../models/Notification");
 
-exports.getNotification = async (req, res) => {
+exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user._id })
       .sort({ createdAt: -1 })
@@ -16,13 +16,8 @@ exports.getNotification = async (req, res) => {
 exports.markAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
-      {
-        userId: req.user._id,
-        read: false,
-      },
-      {
-        read: true,
-      }
+      { userId: req.user._id, read: false },
+      { read: true }
     );
     res.status(200).json({ success: true });
   } catch (error) {

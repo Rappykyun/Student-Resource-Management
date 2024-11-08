@@ -8,6 +8,7 @@ const dashBoardRoutes = require("./routes/dashboardRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const resourceRoutes = require("./routes/resourcesRoutes");
 const studySessionRoutes = require("./routes/studySessionRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const app = express();
 
 app.use(cors());
@@ -24,6 +25,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/studySessions", studySessionRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 const PORT = process.env.PORT || 5000;
 

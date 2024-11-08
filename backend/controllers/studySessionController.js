@@ -1,6 +1,6 @@
 const StudySession = require("../models/StudySession");
 const Course = require("../models/Course");
-const { sendNotification } = require("../utils/sendNotification");
+const { createNotification} = require("../controllers/notificationController");
 const { catchError } = require("rxjs");
 
 exports.createSession = async (req, res) => {
@@ -9,12 +9,27 @@ exports.createSession = async (req, res) => {
       ...req.body,
       user: req.user._id,
     });
+
+    // Notify user about new session creation
+    await createNotification(
+      req.user._id,
+      `New study session "${newSession.title}" created for ${new Date(newSession.startTime).toLocaleDateString()}`,
+      "SYSTEM"
+    );
+
     if (newSession.recurring.enabled) {
       await createRecurringSessions(newSession);
+      await createNotification(
+        req.user._id,
+        `Recurring sessions created for "${newSession.title}"`,
+        "SYSTEM"
+      );
     }
-    if (newSession.remainder.enabled) {
-      scheduleRemainder(newSession);
+
+    if (newSession.reminder.enabled) {
+      scheduleReminder(newSession);
     }
+
     res.status(201).json({
       status: "success",
       data: { session: newSession },
@@ -167,6 +182,32 @@ exports.getStudyStats = async (req, res) => {
   }
 };
 
+exports.deleteSession = async (req, res) => {
+  try {
+    const session = await StudySession.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Study session not found",
+      });
+    }
+
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: error.message,
+    });
+  }
+};
+
 async function createRecurringSessions(baseSession) {
   const sessions = [];
   let currentDate = new Date(baseSession.startTime);
@@ -205,12 +246,11 @@ function scheduleReminder(session) {
   const delay = reminderTime.getTime() - Date.now();
   if (delay > 0) {
     setTimeout(async () => {
-      await sendNotification(session.user, {
-        title: "Study Session Reminder",
-        message: `Your ${session.category} session "${session.title}" starts in ${session.remainder.time} minutes`,
-        type: "study_remainder",
-        sessionId: session._id,
-      });
+      await createNotification(
+        session.user,
+        `Your ${session.category} session "${session.title}" starts in ${session.reminder.time} minutes`,
+        "SYSTEM"
+      );
     }, delay);
   }
 }
