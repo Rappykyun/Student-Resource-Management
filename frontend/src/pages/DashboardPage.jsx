@@ -16,6 +16,7 @@ import {
   Sun,
   Moon,
   Loader,
+  Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,6 +48,7 @@ import DashboardSection from "@/components/DashboardSection";
 import CourseSection from "@/components/CourseSection";
 import ResourcesSection from "@/components/ResourcesSection";
 import AdminResourcesSection from "@/components/AdminResourcesSection";
+import { StudySessionSection } from "@/components/StudySessionSection";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -159,14 +161,8 @@ export default function Dashboard() {
         return <CourseSection />;
       case "resources":
         return <ResourcesSection />;
-
-      case "settings":
-        return (
-          <SettingsSection
-            userData={userData}
-            onProfileUpdate={handleProfileUpdate}
-          />
-        );
+      case "studyPlanner":
+        return <StudySessionSection />;
       case "admin":
         return userData?.isAdmin ? <AdminResourcesSection /> : null;
       default:
@@ -188,34 +184,44 @@ export default function Dashboard() {
     <div
       className={`flex h-screen ${
         isDarkMode ? "dark" : ""
-      } bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800`}
+      } bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900`}
     >
       {/* Desktop Sidebar */}
       <motion.aside
-        className="hidden lg:flex flex-col w-64 bg-white dark:bg-gray-800 border-r shadow-lg"
+        className={`hidden lg:flex flex-col w-64 ${
+          isDarkMode
+            ? "bg-gradient-to-b from-gray-800/95 to-gray-900/95"
+            : "bg-gradient-to-b from-indigo-500 to-purple-500"
+        } text-white transition-colors duration-300`}
         initial={{ x: -250 }}
         animate={{ x: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="p-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            StudyMate.
-          </h2>
+          <motion.div
+            className="flex items-center gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Rocket className="h-8 w-8 text-white" />
+            <h2 className="text-2xl font-bold text-white">StudyMate</h2>
+          </motion.div>
         </div>
-        <ScrollArea className="flex-1 py-2">
-          <nav className="space-y-1 px-2">
+        <ScrollArea className="flex-1 py-6">
+          <nav className="space-y-2 px-4">
             {sidebarItems.map((item) => (
               <Button
                 key={item.key}
                 variant="ghost"
-                className={`w-full justify-start transition-all duration-200 ease-in-out ${
+                className={`w-full justify-start transition-all duration-200 ease-in-out text-white hover:text-white ${
                   activeSection === item.key
-                    ? "bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 text-primary font-medium"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                    ? "bg-white/20 font-medium"
+                    : "hover:bg-white/10"
                 }`}
                 onClick={() => setActiveSection(item.key)}
               >
-                <item.icon className="mr-2 h-4 w-4" />
+                <item.icon className="mr-3 h-5 w-5" />
                 {item.label}
               </Button>
             ))}
@@ -234,28 +240,36 @@ export default function Dashboard() {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="bg-white dark:bg-gray-800">
+        <SheetContent
+          side="left"
+          className={`${
+            isDarkMode
+              ? "bg-gradient-to-b from-gray-800 to-gray-900"
+              : "bg-gradient-to-b from-blue-600 to-purple-600"
+          } text-white transition-colors duration-300`}
+        >
           <SheetHeader>
-            <SheetTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              StudyMate.
+            <SheetTitle className="text-2xl font-bold text-white flex items-center gap-3">
+              <Rocket className="h-8 w-8" />
+              EduLaunch
             </SheetTitle>
           </SheetHeader>
-          <nav className="flex flex-col space-y-1 mt-4">
+          <nav className="flex flex-col space-y-2 mt-8">
             {sidebarItems.map((item) => (
               <Button
                 key={item.key}
                 variant="ghost"
-                className={`justify-start transition-all duration-200 ease-in-out ${
+                className={`justify-start transition-all duration-200 ease-in-out text-white hover:text-white ${
                   activeSection === item.key
-                    ? "bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 text-primary font-medium"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                    ? "bg-white/20 font-medium"
+                    : "hover:bg-white/10"
                 }`}
                 onClick={() => {
                   setActiveSection(item.key);
                   document.body.click();
                 }}
               >
-                <item.icon className="mr-2 h-4 w-4" />
+                <item.icon className="mr-3 h-5 w-5" />
                 {item.label}
               </Button>
             ))}
@@ -266,14 +280,14 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b bg-white dark:bg-gray-800 shadow-sm flex items-center justify-between px-4 lg:px-8">
+        <header className="h-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between px-4 lg:px-8">
           <div className="flex items-center flex-1">
             <form className="flex-1 max-w-lg">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search resources..."
-                  className="pl-8 rounded-full bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-blue-400"
+                  className="pl-10 rounded-full bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-blue-400 transition-all duration-300"
                 />
               </div>
             </form>
@@ -282,7 +296,7 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300"
               onClick={toggleDarkMode}
             >
               {isDarkMode ? (
@@ -305,9 +319,9 @@ export default function Dashboard() {
               <PopoverContent className="w-80" align="end">
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm">Notifications</h4>
-                  <div className="divide-y divide-border">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     {notifications.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 py-2">
                         No notifications
                       </p>
                     ) : (
@@ -315,11 +329,13 @@ export default function Dashboard() {
                         <div
                           key={notification._id}
                           className={`py-2 ${
-                            !notification.read ? "bg-muted/50" : ""
+                            !notification.read
+                              ? "bg-blue-50 dark:bg-blue-900/20"
+                              : ""
                           }`}
                         >
                           <p className="text-sm">{notification.message}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {new Date(
                               notification.createdAt
                             ).toLocaleDateString()}
@@ -356,7 +372,7 @@ export default function Dashboard() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="cursor-pointer text-red-600"
+                  className="cursor-pointer text-red-600 dark:text-red-400"
                 >
                   Log out
                 </DropdownMenuItem>
