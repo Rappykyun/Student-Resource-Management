@@ -45,6 +45,7 @@ import { ProfileDialog } from "@/components/ProfileDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import DashboardSection from "@/components/DashboardSection";
+import { ChatBot } from "@/components/ChatBot";
 import CourseSection from "@/components/CourseSection";
 import ResourcesSection from "@/components/ResourcesSection";
 import AdminResourcesSection from "@/components/AdminResourcesSection";
@@ -407,6 +408,7 @@ export default function Dashboard() {
         currentUser={userData}
         onProfileUpdate={handleProfileUpdate}
       />
+      <ChatBot />
     </div>
   );
 }

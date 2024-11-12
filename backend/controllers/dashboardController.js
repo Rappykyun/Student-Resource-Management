@@ -1,6 +1,10 @@
 // dashboardController.js
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const ChatConversation = require("../models/ChatConversation");
+const axios = require("axios");
+
+const RASA_URL = process.env.RASA_URL || "http://localhost:5005";
 
 // Middleware to protect dashboard routes
 exports.protect = async (req, res, next) => {
@@ -68,6 +72,12 @@ exports.getDashboardData = async (req, res) => {
       ],
     };
 
+    // Include recent chat history in dashboard data
+    const recentChats = await ChatConversation.findOne({ user: req.user._id })
+      .select('messages')
+      .sort({ 'messages.timestamp': -1 })
+      .limit(5);
+
     res.status(200).json({
       status: "success",
       data: {
@@ -76,6 +86,7 @@ exports.getDashboardData = async (req, res) => {
           email: req.user.email,
         },
         ...dashboardData,
+        recentChats: recentChats?.messages || []
       },
     });
   } catch (error) {
@@ -85,3 +96,75 @@ exports.getDashboardData = async (req, res) => {
     });
   }
 };
+
+exports.handleChatMessage = async (req, res) => {
+  try {
+    const { message } = req.body;
+    const userId = req.user._id;
+
+    // Find or create conversation
+    let conversation = await ChatConversation.findOne({ user: userId });
+    if (!conversation) {
+      conversation = new ChatConversation({ user: userId });
+    }
+
+    // Add user message
+    conversation.messages.push({
+      content: message,
+      type: "user",
+    });
+
+    // Get response from Rasa with user context
+    const rasaResponse = await axios.post(`${RASA_URL}/webhooks/rest/webhook`, {
+      sender: userId.toString(),
+      message,
+      metadata: {
+        userId: userId.toString(),
+        userName: req.user.name
+      }
+    });
+
+    // Add bot responses
+    const botResponses = rasaResponse.data;
+    botResponses.forEach((response) => {
+      conversation.messages.push({
+        content: response.text,
+        type: "bot",
+      });
+    });
+
+    conversation.lastInteraction = new Date();
+    await conversation.save();
+
+    res.json({
+      status: "success",
+      data: botResponses,
+    });
+  } catch (error) {
+    console.error("Chat Error:", error);
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+exports.getChatHistory = async (req, res) => {
+  try {
+    const conversation = await ChatConversation.findOne({ user: req.user._id })
+      .select('messages')
+      .sort({ 'messages.timestamp': -1 });
+
+    res.json({
+      status: "success",
+      data: conversation?.messages || []
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error.message
+    });
+  }
+};
+
+

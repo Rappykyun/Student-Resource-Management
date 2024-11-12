@@ -67,6 +67,13 @@ export function StudySessionSection() {
     endDate: null,
     category: "",
   });
+  const [studyStats, setStudyStats] = useState({
+    totalHours: 0,
+    completionRate: 0,
+    categoryBreak: {
+
+    }
+  })
 
   const { toast } = useToast();
 
