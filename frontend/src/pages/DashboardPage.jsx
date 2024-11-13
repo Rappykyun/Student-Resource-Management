@@ -146,7 +146,6 @@ export default function Dashboard() {
     { icon: BookOpen, label: "Courses", key: "courses" },
     { icon: FileText, label: "Resources", key: "resources" },
     { icon: Calendar, label: "Study Planner", key: "studyPlanner" },
-    { icon: Bot, label: "AI Assistant", key: "aiAssistant" },
     { icon: Settings, label: "Settings", key: "settings" },
   ];
 
