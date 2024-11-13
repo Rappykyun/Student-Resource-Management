@@ -22,6 +22,10 @@ router
   .post(courseController.addNote);
 
 router
+  .route("/:courseId/notes/:id")
+  .delete(courseController.deleteNote);
+
+router
   .route("/:courseId/assignments")
   .get(courseController.getAssignments)
   .post(courseController.addAssignment);

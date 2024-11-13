@@ -100,12 +100,30 @@ exports.updateNote = async (req, res) => {
 
 exports.deleteNote = async (req, res) => {
   try {
-    await Note.findOneAndDelete({ _id: req.params.id, user: req.user._id
-    })
+    const note = await Note.findOneAndDelete({
+      _id: req.params.id,
+      course: req.params.courseId,
+      user: req.user._id,
+    });
+
+    if (!note) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Note not found",
+      });
+    }
+
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
   } catch (error) {
-    
+    res.status(400).json({
+      status: "fail",
+      message: error.message,
+    });
   }
-}
+};
 
 exports.addAssignment = async (req, res) => {
   try {
