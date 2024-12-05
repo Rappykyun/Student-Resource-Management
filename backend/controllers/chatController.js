@@ -1,7 +1,7 @@
 const ChatConversation = require("../models/ChatConversation");
 const axios = require("axios");
 
-const RASA_URL = process.env.RASA_URL || "http://localhost:5005";
+const RASA_URL = process.env.RASA_URL;
 
 exports.sendMessage = async (req, res) => {
   try {

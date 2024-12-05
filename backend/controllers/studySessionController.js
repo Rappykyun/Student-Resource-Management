@@ -1,6 +1,6 @@
 const StudySession = require("../models/StudySession");
 const Course = require("../models/Course");
-const { createNotification} = require("../controllers/notificationController");
+const { createNotification } = require("../controllers/notificationController");
 const { catchError } = require("rxjs");
 
 exports.createSession = async (req, res) => {
@@ -13,7 +13,9 @@ exports.createSession = async (req, res) => {
     // Notify user about new session creation
     await createNotification(
       req.user._id,
-      `New study session "${newSession.title}" created for ${new Date(newSession.startTime).toLocaleDateString()}`,
+      `New study session "${newSession.title}" created for ${new Date(
+        newSession.startTime
+      ).toLocaleDateString()}`,
       "SYSTEM"
     );
 

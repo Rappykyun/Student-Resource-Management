@@ -8,31 +8,30 @@ router.use(protect);
 
 router
   .route("/")
-  .get(courseController.getCourses)
+  .get(courseController.getAllCourses)
   .post(courseController.createCourse);
 
 router
   .route("/:id")
+  .get(courseController.getCourse)
   .patch(courseController.updateCourse)
   .delete(courseController.deleteCourse);
 
 router
-  .route("/:courseId/notes")
-  .get(courseController.getNotes)
-  .post(courseController.addNote);
+  .route("/:courseId/milestones/:milestoneId")
+  .patch(courseController.updateMilestone);
 
 router
-  .route("/:courseId/notes/:id")
-  .delete(courseController.deleteNote);
+  .route("/:courseId/study-sessions")
+  .post(courseController.addStudySession);
 
 router
-  .route("/:courseId/assignments")
-  .get(courseController.getAssignments)
-  .post(courseController.addAssignment);
+  .route("/:courseId/syllabus")
+  .post(courseController.addSyllabusItem);
 
 router
-  .route("/:courseId/assignments/:id")
-  .patch(courseController.updateAssignment)
-  .delete(courseController.deleteAssignment);
+  .route("/:courseId/syllabus/:itemId")
+  .patch(courseController.updateSyllabusItem)
+  .delete(courseController.deleteSyllabusItem);
 
 module.exports = router;

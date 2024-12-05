@@ -1,187 +1,212 @@
 const Course = require("../models/Course");
-const Note = require("../models/Note");
-const Assignment = require("../models/Assignment");
+const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
+exports.getAllCourses = catchAsync(async (req, res, next) => {
+  const courses = await Course.find({ user: req.user.id });
+  res.status(200).json({
+    status: "success",
+    data: {
+      courses,
+    },
+  });
+});
 
-exports.createCourse = async (req, res) => {
-  try {
-    const newCourse = await Course.create({ ...req.body, user: req.user._id });
-    res.status(201).json({ status: "success", data: { course: newCourse } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
+exports.getCourse = catchAsync(async (req, res, next) => {
+  const course = await Course.findOne({
+    _id: req.params.id,
+    user: req.user.id,
+  });
+
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
   }
-};
 
-exports.getCourses = async (req, res) => {
-  try {
-    const courses = await Course.find({ user: req.user._id });
-    res.status(200).json({ status: "success", data: { courses } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};
+  res.status(200).json({
+    status: "success",
+    data: {
+      course,
+    },
+  });
+});
 
-exports.updateCourse = async (req, res) => {
-  try {
-    const course = await Course.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!course) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Course not found" });
-    }
-    res.status(200).json({ status: "success", data: { course } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};
+exports.createCourse = catchAsync(async (req, res, next) => {
+  const newCourse = await Course.create({
+    ...req.body,
+    user: req.user.id,
+    progress: {
+      completedMilestones: 0,
+      totalMilestones: req.body.milestones?.length || 0,
+      totalStudyTime: 0,
+    },
+  });
 
-exports.deleteCourse = async (req, res) => {
-  try {
-    const course = await Course.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-    if (!course) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Course not found" });
-    }
-    res.status(204).json({ status: "success", data: null });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};
+  res.status(201).json({
+    status: "success",
+    data: {
+      course: newCourse,
+    },
+  });
+});
 
-exports.addNote = async (req, res) => {
-  try {
-    const newNote = await Note.create({
+exports.updateCourse = catchAsync(async (req, res, next) => {
+  const course = await Course.findOneAndUpdate(
+    { _id: req.params.id, user: req.user.id },
+    {
       ...req.body,
-      course: req.params.courseId,
-      user: req.user._id,
-    });
-    res.status(201).json({ status: "success", data: { note: newNote } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};
-
-exports.getNotes = async (req, res) => {
-  try {
-    const notes = await Note.find({
-      course: req.params.courseId,
-      user: req.user._id,
-    });
-    res.status(200).json({ status: "success", data: { notes } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};
-exports.updateNote = async (req, res) => {
-  try {
-    const note = await Note.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!note) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Note not found" });
+      progress: {
+        ...req.body.progress,
+        totalMilestones: req.body.milestones?.length || 0,
+        completedMilestones: req.body.milestones?.filter(m => m.completed).length || 0,
+      },
+    },
+    {
+      new: true,
+      runValidators: true,
     }
-    res.status(200).json({ status: "success", data: { note } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};  
+  );
 
-exports.deleteNote = async (req, res) => {
-  try {
-    const note = await Note.findOneAndDelete({
-      _id: req.params.id,
-      course: req.params.courseId,
-      user: req.user._id,
-    });
-
-    if (!note) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Note not found",
-      });
-    }
-
-    res.status(204).json({
-      status: "success",
-      data: null,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
   }
-};
 
-exports.addAssignment = async (req, res) => {
-  try {
-    const newAssignment = await Assignment.create({
-      ...req.body,
-      course: req.params.courseId,
-      user: req.user._id,
-    });
-    res
-      .status(201)
-      .json({ status: "success", data: { assignment: newAssignment } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};
+  res.status(200).json({
+    status: "success",
+    data: {
+      course,
+    },
+  });
+});
 
-exports.getAssignments = async (req, res) => {
-  try {
-    const assignments = await Assignment.find({
-      course: req.params.courseId,
-      user: req.user._id,
-    });
-    res.status(200).json({ status: "success", data: { assignments } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
-  }
-};
+exports.deleteCourse = catchAsync(async (req, res, next) => {
+  const course = await Course.findOneAndDelete({
+    _id: req.params.id,
+    user: req.user.id,
+  });
 
-exports.updateAssignment = async (req, res) => {
-  try {
-    const assignment = await Assignment.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!assignment) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Assignment not found" });
-    }
-    res.status(200).json({ status: "success", data: { assignment } });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
   }
-};
-exports.deleteAssignment = async (req, res) => {
-  try {
-    const assignment = await Assignment.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-    if (!assignment) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Assignment not found" });
-    }
-    res.status(204).json({ status: "success", data: null });
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error.message });
+
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
+
+// New endpoints for enhanced features
+
+exports.updateMilestone = catchAsync(async (req, res, next) => {
+  const course = await Course.findOne({
+    _id: req.params.courseId,
+    user: req.user.id,
+  });
+
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
   }
-};
+
+  const milestone = course.milestones.id(req.params.milestoneId);
+  if (!milestone) {
+    return next(new AppError("No milestone found with that ID", 404));
+  }
+
+  milestone.completed = req.body.completed;
+  course.progress.completedMilestones = course.milestones.filter(m => m.completed).length;
+
+  await course.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      course,
+    },
+  });
+});
+
+exports.addStudySession = catchAsync(async (req, res, next) => {
+  const course = await Course.findOne({
+    _id: req.params.courseId,
+    user: req.user.id,
+  });
+
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
+  }
+
+  course.addStudySession(req.body.duration, req.body.topic);
+  await course.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      course,
+    },
+  });
+});
+
+exports.addSyllabusItem = catchAsync(async (req, res, next) => {
+  const course = await Course.findOne({
+    _id: req.params.courseId,
+    user: req.user.id,
+  });
+
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
+  }
+
+  course.syllabus.push(req.body);
+  await course.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      course,
+    },
+  });
+});
+
+exports.updateSyllabusItem = catchAsync(async (req, res, next) => {
+  const course = await Course.findOne({
+    _id: req.params.courseId,
+    user: req.user.id,
+  });
+
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
+  }
+
+  const syllabusItem = course.syllabus.id(req.params.itemId);
+  if (!syllabusItem) {
+    return next(new AppError("No syllabus item found with that ID", 404));
+  }
+
+  Object.assign(syllabusItem, req.body);
+  await course.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      course,
+    },
+  });
+});
+
+exports.deleteSyllabusItem = catchAsync(async (req, res, next) => {
+  const course = await Course.findOne({
+    _id: req.params.courseId,
+    user: req.user.id,
+  });
+
+  if (!course) {
+    return next(new AppError("No course found with that ID", 404));
+  }
+
+  course.syllabus.id(req.params.itemId).remove();
+  await course.save();
+
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
