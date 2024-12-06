@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,104 +19,80 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
-import { Loader, Star } from "lucide-react";
+import { Loader } from "lucide-react";
+import ResourceForm from "./ResourceForm";
+import ResourceCard from "./ResourceCard";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
 const CATEGORIES = [
-  "Frontend",
-  "Backend",
-  "DevOps",
-  "Design",
-  "Data Structures",
-  "Algorithms",
-  "System Design",
-  "Database",
-  "Security",
-  "Machine Learning",
-  "Cloud Computing",
-  "Other",
+  "frontend",
+  "backend",
+  "devOps",
+  "design",
+  "data Structures",
+  "algorithms",
+  "system Design",
+  "database",
+  "security",
+  "machine Learning",
+  "cloud Computing",
+  "other",
 ];
 
-const DIFFICULTY_LEVELS = ["Beginner", "Intermediate", "Advanced"];
+const DIFFICULTY_LEVELS = ["beginner", "intermediate", "advanced"];
 
-export const ResourcesSection = () => {
+export default function ResourcesSection() {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all"); 
-  const [selectedDifficulty, setSelectedDifficulty] = useState("all"); 
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  const [selectedSort, setSelectedSort] = useState("popularity");
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-  const [newResource, setNewResource] = useState({
-    title: "",
-    description: "",
-    category: "",
-    difficulty: "",
-    topics: "",
-    fileUrl: "",
-    prerequisites: "",
-    learningOutcomes: "",
-    tags: "",
-  });
+  const [searchTimeout, setSearchTimeout] = useState(null);
 
-    useEffect(() => {
-      fetchResources();
-    }, []); 
+  useEffect(() => {
+    fetchResources();
+  }, []);
 
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!newResource.category || !newResource.difficulty) {
-      toast({
-        title: "Error",
-        description: "Please select a category and difficulty level",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
     }
 
+    const timeout = setTimeout(() => {
+      fetchResources();
+    }, 500);
+
+    setSearchTimeout(timeout);
+
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchQuery, selectedCategory, selectedDifficulty]);
+
+  const handleSubmit = async (formData) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("No authentication token found");
       }
-      const formattedResource = {
-        ...newResource,
-        topics: newResource.topics
-          .split(",")
-          .map((topic) => topic.trim())
-          .filter(Boolean),
-        prerequisites: newResource.prerequisites
-          .split(",")
-          .map((prereq) => prereq.trim())
-          .filter(Boolean),
-        learningOutcomes: newResource.learningOutcomes
-          .split(",")
-          .map((outcome) => outcome.trim())
-          .filter(Boolean),
-        tags: newResource.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean),
-  
-        difficulty: newResource.difficulty.toLowerCase(),
-        category: newResource.category.toLowerCase(),
-        approved: false, 
-      };
 
-      // Make the API request
       const response = await axios.post(
         `${API_BASE_URL}/resources`,
-        formattedResource,
+        {
+          ...formData,
+          approved: false,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -129,23 +103,10 @@ export const ResourcesSection = () => {
 
       if (response.data.status === "success") {
         setIsSubmitDialogOpen(false);
-        setNewResource({
-          title: "",
-          description: "",
-          category: "",
-          difficulty: "",
-          topics: "",
-          fileUrl: "",
-          prerequisites: "",
-          learningOutcomes: "",
-          tags: "",
-        });
-
         toast({
           title: "Success",
           description: "Resource submitted successfully and pending approval",
         });
-
         fetchResources();
       } else {
         throw new Error(response.data.message || "Failed to submit resource");
@@ -165,14 +126,13 @@ export const ResourcesSection = () => {
   const fetchResources = async () => {
     try {
       setLoading(true);
-      let endpoint = `${API_BASE_URL}/resources`;
+      let endpoint = `${API_BASE_URL}/resources/search`;
 
       const params = new URLSearchParams();
-      if (searchQuery) params.append("query", searchQuery);
-      if (selectedCategory !== "all")
-        params.append("category", selectedCategory);
-      if (selectedDifficulty !== "all")
-        params.append("difficulty", selectedDifficulty);
+      if (searchQuery.trim()) params.append("query", searchQuery.trim());
+      if (selectedCategory !== "all") params.append("category", selectedCategory);
+      if (selectedDifficulty !== "all") params.append("difficulty", selectedDifficulty);
+      if (selectedSort !== "popularity") params.append("sort", selectedSort);
 
       const token = localStorage.getItem("token");
       if (!token) {
@@ -210,7 +170,6 @@ export const ResourcesSection = () => {
     );
   }
 
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -219,255 +178,104 @@ export const ResourcesSection = () => {
           <DialogTrigger asChild>
             <Button>Submit Resource</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Submit a New Resource</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4">
-                <Input
-                  placeholder="Title"
-                  value={newResource.title}
-                  onChange={(e) =>
-                    setNewResource({ ...newResource, title: e.target.value })
-                  }
-                  required
-                />
-
-                <Textarea
-                  placeholder="Description"
-                  value={newResource.description}
-                  onChange={(e) =>
-                    setNewResource({
-                      ...newResource,
-                      description: e.target.value,
-                    })
-                  }
-                  required
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Select
-                    value={newResource.category}
-                    onValueChange={(value) =>
-                      setNewResource({ ...newResource, category: value })
-                    }
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((category) => (
-                        <SelectItem
-                          key={category}
-                          value={category.toLowerCase()}
-                        >
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    value={newResource.difficulty}
-                    onValueChange={(value) =>
-                      setNewResource({ ...newResource, difficulty: value })
-                    }
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Difficulty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DIFFICULTY_LEVELS.map((level) => (
-                        <SelectItem key={level} value={level.toLowerCase()}>
-                          {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Input
-                  placeholder="Topics (comma-separated)"
-                  value={newResource.topics}
-                  onChange={(e) =>
-                    setNewResource({ ...newResource, topics: e.target.value })
-                  }
-                  required
-                />
-
-                <Input
-                  placeholder="Prerequisites (comma-separated)"
-                  value={newResource.prerequisites}
-                  onChange={(e) =>
-                    setNewResource({
-                      ...newResource,
-                      prerequisites: e.target.value,
-                    })
-                  }
-                />
-
-                <Input
-                  placeholder="Learning Outcomes (comma-separated)"
-                  value={newResource.learningOutcomes}
-                  onChange={(e) =>
-                    setNewResource({
-                      ...newResource,
-                      learningOutcomes: e.target.value,
-                    })
-                  }
-                  required
-                />
-
-                <Input
-                  placeholder="File URL"
-                  value={newResource.fileUrl}
-                  onChange={(e) =>
-                    setNewResource({ ...newResource, fileUrl: e.target.value })
-                  }
-                  required
-                />
-
-                <Input
-                  placeholder="Tags (comma-separated)"
-                  value={newResource.tags}
-                  onChange={(e) =>
-                    setNewResource({ ...newResource, tags: e.target.value })
-                  }
-                />
-              </div>
-              <DialogFooter>
-                <Button type="submit">Submit Resource</Button>
-              </DialogFooter>
-            </form>
+            <ResourceForm onSubmit={handleSubmit} />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search resources..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-        </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category.toLowerCase()}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={selectedDifficulty}
-          onValueChange={setSelectedDifficulty}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Difficulty" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Levels</SelectItem>
-            {DIFFICULTY_LEVELS.map((level) => (
-              <SelectItem key={level} value={level.toLowerCase()}>
-                {level}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={fetchResources}>Search</Button>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Resources</CardTitle>
+          <CardDescription>
+            Filter resources by category, difficulty, or search terms
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <Select
+                value={selectedCategory}
+                onValueChange={(value) => {
+                  setSelectedCategory(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-      <ScrollArea className="h-[600px] rounded-md border">
-        {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <Loader className="h-6 w-6 animate-spin" />
+              <Select
+                value={selectedDifficulty}
+                onValueChange={(value) => {
+                  setSelectedDifficulty(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {DIFFICULTY_LEVELS.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={selectedSort}
+                onValueChange={(value) => {
+                  setSelectedSort(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popularity">Most Popular</SelectItem>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="rating">Highest Rated</SelectItem>
+                  <SelectItem value="downloads">Most Downloaded</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search resources..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
-        ) : resources.length > 0 ? (
-          <div className="grid gap-4 p-4 md:grid-cols-2 lg:grid-cols-3">
-            {resources.map((resource) => (
-              <Card key={resource._id} className="flex flex-col">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl">
-                        {resource.title}
-                      </CardTitle>
-                      <CardDescription>
-                        {resource.category} • {resource.views || 0} views
-                      </CardDescription>
-                    </div>
-                    <Badge
-                      variant={
-                        resource.difficulty === "beginner"
-                          ? "default"
-                          : resource.difficulty === "intermediate"
-                          ? "secondary"
-                          : "destructive"
-                      }
-                    >
-                      {resource.difficulty}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {resource.description}
-                  </p>
-                  <div className="mt-2">
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Star className="h-4 w-4 fill-current" />
-                      <span>{(resource.rating || 0).toFixed(1)}</span>
-                      <span>({resource.reviews?.length || 0} reviews)</span>
-                    </div>
-                  </div>
-                  {resource.topics?.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {resource.topics.map((topic, index) => (
-                        <Badge key={index} variant="secondary">
-                          {topic}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  {resource.tags?.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {resource.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    By {resource.submittedBy?.name || "Anonymous"}
-                  </div>
-                  <Button asChild>
-                    <a
-                      href={resource.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View Resource
-                    </a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="flex justify-center items-center h-full text-muted-foreground">
+        </CardContent>
+      </Card>
+
+      <ScrollArea className="h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {resources.map((resource) => (
+            <ResourceCard
+              key={resource._id}
+              resource={resource}
+              onUpdate={fetchResources}
+            />
+          ))}
+        </div>
+        {resources.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
             No resources found
           </div>
         )}
@@ -475,5 +283,3 @@ export const ResourcesSection = () => {
     </div>
   );
 };
-
-export default ResourcesSection;

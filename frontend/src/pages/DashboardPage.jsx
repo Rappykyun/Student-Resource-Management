@@ -17,6 +17,7 @@ import {
   Moon,
   Loader,
   Rocket,
+  Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -50,6 +51,7 @@ import CourseSection from "@/components/CourseSection";
 import ResourcesSection from "@/components/ResourcesSection";
 import AdminResourcesSection from "@/components/AdminResourcesSection";
 import { StudySessionSection } from "@/components/StudySessionSection";
+import { PomodoroSection } from "@/components/PomodoroSection";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -145,7 +147,7 @@ export default function Dashboard() {
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard" },
     { icon: BookOpen, label: "Courses", key: "courses" },
     { icon: FileText, label: "Resources", key: "resources" },
-    { icon: Calendar, label: "Study Planner", key: "studyPlanner" },
+    { icon: Timer, label: "Pomodoro", key: "pomodoro" },
     { icon: Settings, label: "Settings", key: "settings" },
   ];
 
@@ -161,8 +163,8 @@ export default function Dashboard() {
         return <CourseSection />;
       case "resources":
         return <ResourcesSection />;
-      case "studyPlanner":
-        return <StudySessionSection />;
+      case "pomodoro":
+        return <PomodoroSection />;
       case "admin":
         return userData?.isAdmin ? <AdminResourcesSection /> : null;
       default:

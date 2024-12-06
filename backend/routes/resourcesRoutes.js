@@ -13,13 +13,16 @@ router
   .post(resourceController.submitResource);
 
 router.get("/search", resourceController.searchResources);
-router.post("/:id/reviews", resourceController.reviewResource);
 
 router
   .route("/:id")
   .get(resourceController.getResource)
   .patch(resourceController.updateResource)
   .delete(resourceController.deleteResource);
+
+router.post("/:id/reviews", resourceController.reviewResource);
+router.post("/:id/reactions", resourceController.handleReaction);
+router.post("/:id/download", resourceController.recordDownload);
 
 router.use(restrictToAdmin);
 router.get("/admin/pending", resourceController.getAllPendingResources);

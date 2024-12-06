@@ -1,273 +1,264 @@
 const Resource = require("../models/Resources");
+const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
-exports.submitResource = async (req, res) => {
-  try {
-    const newResource = await Resource.create({
-      ...req.body,
-      submittedBy: req.user._id,
-      difficulty: req.body.difficulty,
-      prerequisites: req.body.prerequisites,
-      learningOutcomes: req.body.learningOutcomes,
-    });
+// Get all resources
+exports.getAllResources = catchAsync(async (req, res, next) => {
+  const resources = await Resource.find({ approved: true })
+    .populate("submittedBy", "name profilePicture")
+    .sort("-createdAt");
 
-    res.status(201).json({
-      status: "success",
-      data: { resource: newResource },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  res.status(200).json({
+    status: "success",
+    data: {
+      resources,
+    },
+  });
+});
+
+// Get a single resource
+exports.getResource = catchAsync(async (req, res, next) => {
+  const resource = await Resource.findByIdAndUpdate(
+    req.params.id,
+    { $inc: { views: 1 } },
+    { new: true }
+  ).populate("submittedBy", "name profilePicture");
+
+  if (!resource) {
+    return next(new AppError("No resource found with that ID", 404));
   }
-};
 
-exports.getAllResources = async (req, res) => {
-  try {
-    const { sort, difficulty, category, topic } = req.query;
-    let query = Resource.find({ approved: true });
+  res.status(200).json({
+    status: "success",
+    data: {
+      resource,
+    },
+  });
+});
 
-    // Advanced filtering
-    if (difficulty) {
-      query = query.find({ difficulty });
-    }
-    if (category) {
-      query = query.find({ category });
-    }
-    if (topic) {
-      query = query.find({ topics: topic });
-    }
+// Submit a new resource
+exports.submitResource = catchAsync(async (req, res, next) => {
+  const newResource = await Resource.create({
+    ...req.body,
+    submittedBy: req.user.id,
+  });
 
-    // Sorting
-    if (sort) {
-      const sortOrder = sort.split(",").join(" ");
-      query = query.sort(sortOrder);
-    } else {
-      query = query.sort("-createdAt");
-    }
+  res.status(201).json({
+    status: "success",
+    data: {
+      resource: newResource,
+    },
+  });
+});
 
-    const resources = await query.populate([
-      { path: "submittedBy", select: "name expertise" },
-      { path: "reviews", select: "rating comment user" },
-    ]);
-
-    res.status(200).json({
-      status: "success",
-      results: resources.length,
-      data: { resources },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
-  }
-};
-
-// Add the missing getResource controller
-exports.getResource = async (req, res) => {
-  try {
-    const resource = await Resource.findById(req.params.id)
-      .populate("submittedBy", "name expertise")
-      .populate("reviews");
-
-    if (!resource) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Resource not found",
-      });
-    }
-
-    res.status(200).json({
-      status: "success",
-      data: { resource },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
-  }
-};
-
-// Add the missing updateResource controller
-exports.updateResource = async (req, res) => {
-  try {
-    const resource = await Resource.findByIdAndUpdate(req.params.id, req.body, {
+// Update a resource
+exports.updateResource = catchAsync(async (req, res, next) => {
+  const resource = await Resource.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      submittedBy: req.user.id,
+    },
+    req.body,
+    {
       new: true,
       runValidators: true,
-    });
-
-    if (!resource) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Resource not found",
-      });
     }
+  );
 
-    res.status(200).json({
-      status: "success",
-      data: { resource },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  if (!resource) {
+    return next(new AppError("No resource found with that ID", 404));
   }
-};
 
-// Add the missing deleteResource controller
-exports.deleteResource = async (req, res) => {
-  try {
-    const resource = await Resource.findByIdAndDelete(req.params.id);
+  res.status(200).json({
+    status: "success",
+    data: {
+      resource,
+    },
+  });
+});
 
-    if (!resource) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Resource not found",
-      });
-    }
+// Delete a resource
+exports.deleteResource = catchAsync(async (req, res, next) => {
+  const resource = await Resource.findOneAndDelete({
+    _id: req.params.id,
+    submittedBy: req.user.id,
+  });
 
-    res.status(204).json({
-      status: "success",
-      data: null,
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  if (!resource) {
+    return next(new AppError("No resource found with that ID", 404));
   }
-};
 
-exports.searchResources = async (req, res) => {
-  try {
-    const { query, category, tags, difficulty, topic } = req.query;
-    const searchCriteria = { approved: true };
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
 
-    if (query) {
-      searchCriteria.$or = [
-        { title: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-        { topics: { $regex: query, $options: "i" } },
-        { learningOutcomes: { $regex: query, $options: "i" } },
-      ];
-    }
+// Search resources
+exports.searchResources = catchAsync(async (req, res, next) => {
+  const { query, category, difficulty, sort } = req.query;
+  const searchQuery = { approved: true };
 
-    if (category) searchCriteria.category = category;
-    if (tags) searchCriteria.tags = { $in: tags.split(",") };
-    if (difficulty) searchCriteria.difficulty = difficulty;
-    if (topic) searchCriteria.topics = topic;
-
-    const resources = await Resource.find(searchCriteria)
-      .populate("submittedBy", "name expertise")
-      .populate("reviews")
-      .sort("-rating");
-
-    res.status(200).json({
-      status: "success",
-      results: resources.length,
-      data: { resources },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  if (query) {
+    searchQuery.$text = { $search: query };
   }
-};
 
-exports.reviewResource = async (req, res) => {
-  try {
-    const { rating, comment } = req.body;
-    const resource = await Resource.findById(req.params.id);
-
-    if (!resource) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Resource not found",
-      });
-    }
-
-    const review = {
-      user: req.user._id,
-      rating,
-      comment,
-      date: Date.now(),
-    };
-
-    resource.reviews.push(review);
-    resource.rating = calculateAverageRating(resource.reviews);
-    await resource.save();
-
-    res.status(200).json({
-      status: "success",
-      data: { resource },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  if (category) {
+    searchQuery.category = category;
   }
-};
 
-exports.getAllPendingResources = async (req, res) => {
-  try {
-    const resources = await Resource.find({ approved: false })
-      .populate("submittedBy", "name expertise")
-      .sort("-createdAt");
-
-    res.status(200).json({
-      status: "success",
-      results: resources.length,
-      data: { resources },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  if (difficulty) {
+    searchQuery.difficulty = difficulty;
   }
-};
 
-exports.approveResource = async (req, res) => {
-  try {
-    const { feedback } = req.body;
-    const resource = await Resource.findByIdAndUpdate(
-      req.params.id,
-      {
-        approved: true,
-        adminFeedback: feedback,
-        approvedAt: Date.now(),
-        approvedBy: req.user._id,
-      },
-      { new: true }
+  let sortOptions = { popularityScore: -1 };
+  if (sort === "newest") {
+    sortOptions = { createdAt: -1 };
+  } else if (sort === "rating") {
+    sortOptions = { "rating.average": -1 };
+  } else if (sort === "downloads") {
+    sortOptions = { downloadCount: -1 };
+  }
+
+  const resources = await Resource.find(searchQuery)
+    .populate("submittedBy", "name profilePicture")
+    .sort(sortOptions);
+
+  res.status(200).json({
+    status: "success",
+    results: resources.length,
+    data: {
+      resources,
+    },
+  });
+});
+
+// Add a review
+exports.reviewResource = catchAsync(async (req, res, next) => {
+  const resource = await Resource.findById(req.params.id);
+
+  if (!resource) {
+    return next(new AppError("No resource found with that ID", 404));
+  }
+
+  // Check if user has already reviewed
+  const existingReview = resource.reviews.find(
+    (review) => review.user.toString() === req.user.id
+  );
+
+  if (existingReview) {
+    return next(new AppError("You have already reviewed this resource", 400));
+  }
+
+  resource.reviews.push({
+    user: req.user.id,
+    rating: req.body.rating,
+    comment: req.body.comment,
+  });
+
+  await resource.save();
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      resource,
+    },
+  });
+});
+
+// Handle reactions (like, helpful, save)
+exports.handleReaction = catchAsync(async (req, res, next) => {
+  const { type } = req.body;
+  const resource = await Resource.findById(req.params.id);
+
+  if (!resource) {
+    return next(new AppError("No resource found with that ID", 404));
+  }
+
+  const userId = req.user.id;
+  const reactionArray = resource.reactions[type];
+  const hasReacted = reactionArray.includes(userId);
+
+  if (hasReacted) {
+    // Remove reaction
+    resource.reactions[type] = reactionArray.filter(
+      (id) => id.toString() !== userId
     );
-
-    if (!resource) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Resource not found",
-      });
-    }
-
-    res.status(200).json({
-      status: "success",
-      data: { resource },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
+  } else {
+    // Add reaction
+    reactionArray.push(userId);
   }
-};
 
+  await resource.save();
 
-const calculateAverageRating = (reviews) => {
-  if (reviews.length === 0) return 0;
-  const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-  return (sum / reviews.length).toFixed(1);
-};
+  res.status(200).json({
+    status: "success",
+    data: {
+      resource,
+    },
+  });
+});
+
+// Record download
+exports.recordDownload = catchAsync(async (req, res, next) => {
+  const resource = await Resource.findByIdAndUpdate(
+    req.params.id,
+    {
+      $inc: { downloadCount: 1 },
+      lastDownloaded: new Date(),
+    },
+    { new: true }
+  );
+
+  if (!resource) {
+    return next(new AppError("No resource found with that ID", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      resource,
+    },
+  });
+});
+
+// Admin routes
+exports.getAllPendingResources = catchAsync(async (req, res, next) => {
+  const resources = await Resource.find({ approved: false })
+    .populate("submittedBy", "name profilePicture")
+    .sort("-createdAt");
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      resources,
+    },
+  });
+});
+
+exports.approveResource = catchAsync(async (req, res, next) => {
+  const resource = await Resource.findByIdAndUpdate(
+    req.params.id,
+    {
+      approved: true,
+      approvedBy: req.user.id,
+      approvedAt: new Date(),
+      adminFeedback: req.body.feedback,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!resource) {
+    return next(new AppError("No resource found with that ID", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      resource,
+    },
+  });
+});
