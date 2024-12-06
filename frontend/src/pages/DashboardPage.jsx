@@ -9,9 +9,6 @@ import {
   LayoutDashboard,
   BookOpen,
   FileText,
-  Calendar,
-  Bot,
-  Settings,
   ShieldCheck,
   Sun,
   Moon,
@@ -50,7 +47,7 @@ import { ChatBot } from "@/components/ChatBot";
 import CourseSection from "@/components/CourseSection";
 import ResourcesSection from "@/components/ResourcesSection";
 import AdminResourcesSection from "@/components/AdminResourcesSection";
-import { StudySessionSection } from "@/components/StudySessionSection";
+
 import { PomodoroSection } from "@/components/PomodoroSection";
 
 const API_BASE_URL = "http://localhost:5000/api";
@@ -148,7 +145,6 @@ export default function Dashboard() {
     { icon: BookOpen, label: "Courses", key: "courses" },
     { icon: FileText, label: "Resources", key: "resources" },
     { icon: Timer, label: "Pomodoro", key: "pomodoro" },
-    { icon: Settings, label: "Settings", key: "settings" },
   ];
 
   const sidebarItems = userData?.isAdmin

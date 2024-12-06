@@ -1,8 +1,10 @@
 // dashboardController.js
 const User = require("../models/User");
+const Course = require("../models/Course");
+const StudySession = require("../models/StudySession");
 const jwt = require("jsonwebtoken");
 const ChatConversation = require("../models/ChatConversation");
-const axios = require("axios");
+const catchAsync = require("../utils/catchAsync");
 
 const RASA_URL = process.env.RASA_URL || "http://localhost:5005";
 
@@ -48,54 +50,59 @@ exports.protect = async (req, res, next) => {
   }
 };
 
-exports.getDashboardData = async (req, res) => {
-  try {
-    const userId = req.user._id;
+exports.getDashboardData = catchAsync(async (req, res) => {
+  const userId = req.user._id;
 
-    const dashboardData = {
-      courses: [
-        { id: 1, name: "Javascipt Bootcamp" },
-        { id: 2, name: "Machine Learning Course" },
-        { id: 3, name: "Harvard CS50" },
-      ],
-      tasks: [
-        { id: 1, title: "Math Assignment", due: "2024-10-15" },
-        { id: 2, title: "History Essay", due: "2024-10-20" },
-      ],
-      studySessions: [
-        { id: 1, subject: "Mathematics", time: "14:00 - 16:00" },
-        { id: 2, subject: "History", time: "18:00 - 20:00" },
-      ],
-      resources: [
-        { id: 1, title: "Calculus Textbook", type: "PDF" },
-        { id: 2, title: "World War II Documentary", type: "Video" },
-      ],
-    };
+  // Fetch user's courses
+  const courses = await Course.find({ user: userId })
+    .select('title description professor startDate endDate schedule category tags milestones progress')
+    .sort({ startDate: 1 });
 
-    // Include recent chat history in dashboard data
-    const recentChats = await ChatConversation.findOne({ user: req.user._id })
-      .select('messages')
-      .sort({ 'messages.timestamp': -1 })
-      .limit(5);
+  // Fetch user's study sessions
+  const studySessions = await StudySession.find({ user: userId })
+    .sort({ startTime: -1 })
+    .limit(10);
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        user: {
-          name: req.user.name,
-          email: req.user.email,
-        },
-        ...dashboardData,
-        recentChats: recentChats?.messages || []
+  // Calculate upcoming tasks from milestones
+  const tasks = [];
+  const now = new Date();
+  const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  courses.forEach(course => {
+    course.milestones?.forEach(milestone => {
+      if (!milestone.completed && new Date(milestone.dueDate) <= oneWeekFromNow) {
+        tasks.push({
+          title: milestone.title,
+          course: course.title,
+          due: milestone.dueDate,
+        });
+      }
+    });
+  });
+
+  // Sort tasks by due date
+  tasks.sort((a, b) => new Date(a.due) - new Date(b.due));
+
+  // Include recent chat history
+  const recentChats = await ChatConversation.findOne({ user: userId })
+    .select('messages')
+    .sort({ 'messages.timestamp': -1 })
+    .limit(5);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      user: {
+        name: req.user.name,
+        email: req.user.email,
       },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: "fail",
-      message: error.message,
-    });
-  }
-};
+      courses,
+      tasks,
+      studySessions,
+      recentChats: recentChats?.messages || []
+    },
+  });
+});
 
 exports.handleChatMessage = async (req, res) => {
   try {

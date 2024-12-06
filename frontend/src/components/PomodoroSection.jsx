@@ -14,13 +14,6 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const TIMER_STATES = {
   POMODORO: "pomodoro",
@@ -29,129 +22,199 @@ const TIMER_STATES = {
 };
 
 const DEFAULT_TIMES = {
-  [TIMER_STATES.POMODORO]: 25 * 60, // 25 minutes
-  [TIMER_STATES.SHORT_BREAK]: 5 * 60, // 5 minutes
-  [TIMER_STATES.LONG_BREAK]: 15 * 60, // 15 minutes
+  [TIMER_STATES.POMODORO]: 25 * 60,
+  [TIMER_STATES.SHORT_BREAK]: 5 * 60,
+  [TIMER_STATES.LONG_BREAK]: 15 * 60,
 };
 
+// Global timer states
+const globalTimers = {
+  [TIMER_STATES.POMODORO]: {
+    interval: null,
+    startTime: 0,
+    timeLeft: DEFAULT_TIMES[TIMER_STATES.POMODORO],
+    isRunning: false,
+  },
+  [TIMER_STATES.SHORT_BREAK]: {
+    interval: null,
+    startTime: 0,
+    timeLeft: DEFAULT_TIMES[TIMER_STATES.SHORT_BREAK],
+    isRunning: false,
+  },
+  [TIMER_STATES.LONG_BREAK]: {
+    interval: null,
+    startTime: 0,
+    timeLeft: DEFAULT_TIMES[TIMER_STATES.LONG_BREAK],
+    isRunning: false,
+  },
+};
+
+let globalPomodorosCompleted = 0;
+
 export function PomodoroSection() {
-  const [timeLeft, setTimeLeft] = useState(DEFAULT_TIMES[TIMER_STATES.POMODORO]);
-  const [isRunning, setIsRunning] = useState(false);
+  const [timers, setTimers] = useState(globalTimers);
   const [currentState, setCurrentState] = useState(TIMER_STATES.POMODORO);
-  const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
+  const [pomodorosCompleted, setPomodorosCompleted] = useState(globalPomodorosCompleted);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [volume, setVolume] = useState(0.5);
   
-  const timerRef = useRef(null);
   const audioRef = useRef(null);
   const { toast } = useToast();
 
   // Initialize audio
   useEffect(() => {
-    audioRef.current = new Audio("/notification.mp3"); // You'll need to add this sound file
+    audioRef.current = new Audio("/notification.mp3");
     audioRef.current.volume = volume;
-  }, []);
 
-  // Load saved state
-  useEffect(() => {
     const savedState = localStorage.getItem("pomodoroState");
     if (savedState) {
-      const { timeLeft, isRunning, currentState, pomodorosCompleted, soundEnabled, volume } = JSON.parse(savedState);
-      setTimeLeft(timeLeft);
-      setIsRunning(isRunning);
-      setCurrentState(currentState);
-      setPomodorosCompleted(pomodorosCompleted);
-      setSoundEnabled(soundEnabled);
-      setVolume(volume);
+      const { soundEnabled: savedSoundEnabled, volume: savedVolume } = JSON.parse(savedState);
+      setSoundEnabled(savedSoundEnabled);
+      setVolume(savedVolume);
     }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
   }, []);
 
-  // Save state
+  // Save sound preferences
   useEffect(() => {
     localStorage.setItem(
       "pomodoroState",
       JSON.stringify({
-        timeLeft,
-        isRunning,
-        currentState,
-        pomodorosCompleted,
         soundEnabled,
         volume,
       })
     );
-  }, [timeLeft, isRunning, currentState, pomodorosCompleted, soundEnabled, volume]);
+  }, [soundEnabled, volume]);
 
-  // Timer logic
+  // Update global timers and maintain running timers
   useEffect(() => {
-    if (isRunning) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            handleTimerComplete();
-            return 0;
+    Object.keys(timers).forEach((timerState) => {
+      const timer = timers[timerState];
+      if (timer.isRunning && !timer.interval) {
+        startTimer(timerState);
+      }
+    });
+
+    // Sync interval
+    const syncInterval = setInterval(() => {
+      setTimers((currentTimers) => {
+        const newTimers = { ...currentTimers };
+        Object.keys(newTimers).forEach((timerState) => {
+          if (globalTimers[timerState].isRunning) {
+            newTimers[timerState] = { ...globalTimers[timerState] };
           }
-          return prevTime - 1;
         });
-      }, 1000);
+        return newTimers;
+      });
+    }, 100);
+
+    return () => clearInterval(syncInterval);
+  }, []);
+
+  const startTimer = (timerState) => {
+    const timer = globalTimers[timerState];
+    if (!timer.startTime) {
+      timer.startTime = Date.now() - ((DEFAULT_TIMES[timerState] - timer.timeLeft) * 1000);
     }
 
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [isRunning]);
+    if (timer.interval) {
+      clearInterval(timer.interval);
+    }
 
-  const handleTimerComplete = () => {
-    clearInterval(timerRef.current);
-    setIsRunning(false);
+    timer.interval = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - timer.startTime) / 1000);
+      const newTimeLeft = DEFAULT_TIMES[timerState] - elapsedTime;
+      
+      if (newTimeLeft <= 0) {
+        handleTimerComplete(timerState);
+      } else {
+        timer.timeLeft = newTimeLeft;
+        globalTimers[timerState] = { ...timer };
+        
+        setTimers((current) => ({
+          ...current,
+          [timerState]: { ...timer }
+        }));
+      }
+    }, 1000);
+  };
+
+  const handleTimerComplete = (timerState) => {
+    const timer = globalTimers[timerState];
+    clearInterval(timer.interval);
+    timer.interval = null;
+    timer.isRunning = false;
+    timer.startTime = 0;
+    timer.timeLeft = DEFAULT_TIMES[timerState];
+
+    setTimers((current) => ({
+      ...current,
+      [timerState]: { ...timer }
+    }));
 
     if (soundEnabled && audioRef.current) {
       audioRef.current.play();
     }
 
-    if (currentState === TIMER_STATES.POMODORO) {
+    if (timerState === TIMER_STATES.POMODORO) {
       const newPomodorosCompleted = pomodorosCompleted + 1;
       setPomodorosCompleted(newPomodorosCompleted);
+      globalPomodorosCompleted = newPomodorosCompleted;
 
-      if (newPomodorosCompleted % 4 === 0) {
-        setCurrentState(TIMER_STATES.LONG_BREAK);
-        setTimeLeft(DEFAULT_TIMES[TIMER_STATES.LONG_BREAK]);
-        toast({
-          title: "Time for a long break!",
-          description: "Great job! Take 15 minutes to recharge.",
-        });
-      } else {
-        setCurrentState(TIMER_STATES.SHORT_BREAK);
-        setTimeLeft(DEFAULT_TIMES[TIMER_STATES.SHORT_BREAK]);
-        toast({
-          title: "Time for a short break!",
-          description: "Good work! Take 5 minutes to refresh.",
-        });
-      }
+      toast({
+        title: "Focus session complete!",
+        description: newPomodorosCompleted % 4 === 0 
+          ? "Time for a long break!" 
+          : "Time for a short break!",
+      });
     } else {
-      setCurrentState(TIMER_STATES.POMODORO);
-      setTimeLeft(DEFAULT_TIMES[TIMER_STATES.POMODORO]);
       toast({
         title: "Break time's over!",
-        description: "Let's focus on the next task.",
+        description: "Ready for another focus session?",
       });
     }
   };
 
   const handleStateChange = (newState) => {
     setCurrentState(newState);
-    setTimeLeft(DEFAULT_TIMES[newState]);
-    setIsRunning(false);
   };
 
   const toggleTimer = () => {
-    setIsRunning(!isRunning);
+    const timer = globalTimers[currentState];
+    const newIsRunning = !timer.isRunning;
+    
+    timer.isRunning = newIsRunning;
+    if (newIsRunning) {
+      startTimer(currentState);
+    } else {
+      clearInterval(timer.interval);
+      timer.interval = null;
+    }
+
+    setTimers((current) => ({
+      ...current,
+      [currentState]: { ...timer }
+    }));
   };
 
   const resetTimer = () => {
-    setIsRunning(false);
-    setTimeLeft(DEFAULT_TIMES[currentState]);
+    const timer = globalTimers[currentState];
+    clearInterval(timer.interval);
+    timer.interval = null;
+    timer.isRunning = false;
+    timer.startTime = 0;
+    timer.timeLeft = DEFAULT_TIMES[currentState];
+    
+    setTimers((current) => ({
+      ...current,
+      [currentState]: { ...timer }
+    }));
   };
 
   const formatTime = (seconds) => {
@@ -175,7 +238,8 @@ export function PomodoroSection() {
     }
   };
 
-  const progress = (timeLeft / DEFAULT_TIMES[currentState]) * 100;
+  const currentTimer = timers[currentState];
+  const progress = (currentTimer.timeLeft / DEFAULT_TIMES[currentState]) * 100;
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
@@ -217,36 +281,36 @@ export function PomodoroSection() {
               onClick={() => handleStateChange(TIMER_STATES.POMODORO)}
             >
               <Brain className="h-4 w-4 mr-2" />
-              Focus
+              Focus {timers[TIMER_STATES.POMODORO].isRunning && "(Running)"}
             </Button>
             <Button
               variant={currentState === TIMER_STATES.SHORT_BREAK ? "default" : "outline"}
               onClick={() => handleStateChange(TIMER_STATES.SHORT_BREAK)}
             >
               <Coffee className="h-4 w-4 mr-2" />
-              Short Break
+              Short Break {timers[TIMER_STATES.SHORT_BREAK].isRunning && "(Running)"}
             </Button>
             <Button
               variant={currentState === TIMER_STATES.LONG_BREAK ? "default" : "outline"}
               onClick={() => handleStateChange(TIMER_STATES.LONG_BREAK)}
             >
               <TimerIcon className="h-4 w-4 mr-2" />
-              Long Break
+              Long Break {timers[TIMER_STATES.LONG_BREAK].isRunning && "(Running)"}
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center space-y-6">
             <div className="text-6xl font-mono font-bold tracking-wider">
-              {formatTime(timeLeft)}
+              {formatTime(currentTimer.timeLeft)}
             </div>
             <div className="flex items-center gap-4">
               <Button
                 size="lg"
                 onClick={toggleTimer}
-                variant={isRunning ? "destructive" : "default"}
+                variant={currentTimer.isRunning ? "destructive" : "default"}
               >
-                {isRunning ? (
+                {currentTimer.isRunning ? (
                   <>
                     <Pause className="h-4 w-4 mr-2" />
                     Pause

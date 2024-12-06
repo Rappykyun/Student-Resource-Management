@@ -22,7 +22,6 @@ import {
   Pause,
   RotateCcw,
   CheckCircle2,
-  BookMarked,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
@@ -50,15 +49,6 @@ CourseCard.propTypes = {
         completed: PropTypes.bool,
       })
     ),
-    syllabus: PropTypes.arrayOf(
-      PropTypes.shape({
-        _id: PropTypes.string,
-        title: PropTypes.string.isRequired,
-        description: PropTypes.string,
-        fileUrl: PropTypes.string,
-        weekNumber: PropTypes.number,
-      })
-    ),
     progress: PropTypes.shape({
       completedMilestones: PropTypes.number,
       totalMilestones: PropTypes.number,
@@ -74,7 +64,7 @@ export default function CourseCard({ course, onEdit, onDelete }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isStudying, setIsStudying] = useState(false);
   const [studyTime, setStudyTime] = useState(0);
-  const [timerDuration] = useState(25 * 60); // 25 minutes in seconds
+  const [timerDuration] = useState(25 * 60);
   const timerRef = useRef(null);
 
   useEffect(() => {
@@ -152,8 +142,27 @@ export default function CourseCard({ course, onEdit, onDelete }) {
   };
 
   const calculateProgress = () => {
-    if (!course.milestones?.length) return 0;
-    return (course.milestones.filter((m) => m.completed).length / course.milestones.length) * 100;
+    let totalScore = 0;
+    let maxScore = 0;
+
+    // Calculate milestone progress (60% weight)
+    if (course.milestones?.length) {
+      const milestoneProgress = (course.milestones.filter(m => m.completed).length / course.milestones.length) * 100;
+      totalScore += milestoneProgress * 0.6;
+      maxScore += 60;
+    }
+
+    // Calculate study time progress (40% weight)
+    const totalStudyTime = course.progress?.totalStudyTime || 0;
+    const targetStudyTime = 3000; // Target: 50 hours (3000 minutes)
+    if (totalStudyTime > 0) {
+      const studyProgress = Math.min((totalStudyTime / targetStudyTime) * 100, 100);
+      totalScore += studyProgress * 0.4;
+      maxScore += 40;
+    }
+
+    // Return overall progress
+    return maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
   };
 
   const toggleMilestone = async (milestoneId, completed) => {
@@ -195,11 +204,7 @@ export default function CourseCard({ course, onEdit, onDelete }) {
             <Button variant="ghost" size="icon" onClick={() => onEdit(course)}>
               <Edit className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(course._id)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => onDelete(course._id)}>
               <Trash className="h-4 w-4" />
             </Button>
           </div>
@@ -218,10 +223,9 @@ export default function CourseCard({ course, onEdit, onDelete }) {
 
       <CardContent className="space-y-4">
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 gap-4">
+          <TabsList className="grid grid-cols-3 gap-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="milestones">Milestones</TabsTrigger>
-            <TabsTrigger value="syllabus">Syllabus</TabsTrigger>
             <TabsTrigger value="study">Study</TabsTrigger>
           </TabsList>
 
@@ -250,6 +254,20 @@ export default function CourseCard({ course, onEdit, onDelete }) {
                 </span>
               </div>
               <Progress value={calculateProgress()} />
+              <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Milestones</p>
+                  <p className="font-medium">
+                    {course.milestones?.filter(m => m.completed).length || 0}/{course.milestones?.length || 0} Completed
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-muted-foreground">Study Time</p>
+                  <p className="font-medium">
+                    {Math.floor(course.progress?.totalStudyTime || 0)} minutes
+                  </p>
+                </div>
+              </div>
             </div>
           </TabsContent>
 
@@ -279,34 +297,6 @@ export default function CourseCard({ course, onEdit, onDelete }) {
                         Due: {format(new Date(milestone.dueDate), "PPP")}
                       </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-
-          <TabsContent value="syllabus" className="space-y-4">
-            <ScrollArea className="h-[200px]">
-              <div className="space-y-4">
-                {course.syllabus?.map((item) => (
-                  <div
-                    key={item._id}
-                    className="p-3 bg-secondary/20 rounded-lg space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">Week {item.weekNumber}: {item.title}</h4>
-                      {item.fileUrl && (
-                        <Button variant="ghost" size="sm" asChild>
-                          <a href={item.fileUrl} target="_blank" rel="noopener noreferrer">
-                            <BookMarked className="h-4 w-4 mr-2" />
-                            Download
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {item.description}
-                    </p>
                   </div>
                 ))}
               </div>
