@@ -54,6 +54,50 @@ export function ChatBot() {
     }
   };
 
+  const handleButtonClick = async (payload) => {
+    if (!payload) return;
+    
+    // Remove the leading '/' from the payload
+    const message = payload.startsWith('/') ? payload.substring(1) : payload;
+    
+    // Create a temporary message to show what button was clicked
+    const userMessage = {
+      content: message.replace(/_/g, ' '),
+      type: "user",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/dashboard/chat/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message: payload }),
+      });
+
+      const data = await response.json();
+      if (data.status === "success") {
+        const botResponses = data.data.map((msg) => ({
+          content: msg.text,
+          buttons: msg.buttons,
+          type: "bot",
+          timestamp: new Date(),
+        }));
+        setMessages((prev) => [...prev, ...botResponses]);
+      }
+    } catch (error) {
+      console.error("Error handling button click:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
@@ -83,6 +127,7 @@ export function ChatBot() {
       if (data.status === "success") {
         const botResponses = data.data.map((msg) => ({
           content: msg.text,
+          buttons: msg.buttons,
           type: "bot",
           timestamp: new Date(),
         }));
@@ -90,6 +135,15 @@ export function ChatBot() {
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      // Show error message to user
+      setMessages((prev) => [
+        ...prev,
+        {
+          content: "Sorry, I'm having trouble connecting. Please try again later.",
+          type: "bot",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +236,22 @@ export function ChatBot() {
                                 : "bg-secondary text-secondary-foreground"
                             }`}
                           >
-                            {message.content}
+                            <div>{message.content}</div>
+                            {message.buttons && message.buttons.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {message.buttons.map((button, idx) => (
+                                  <Button
+                                    key={idx}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleButtonClick(button.payload)}
+                                    className="text-xs"
+                                  >
+                                    {button.title}
+                                  </Button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           {message.type === "user" && (
                             <Avatar className="h-8 w-8">

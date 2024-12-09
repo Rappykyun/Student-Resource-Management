@@ -242,15 +242,15 @@ export function PomodoroSection() {
   const progress = (currentTimer.timeLeft / DEFAULT_TIMES[currentState]) * 100;
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl">
+    <div className="container mx-auto p-2 sm:p-4 lg:p-6 max-w-2xl">
       <Card className="relative overflow-hidden">
         <div
           className={`absolute bottom-0 left-0 h-1 transition-all duration-1000 ${getProgressColor()}`}
           style={{ width: `${progress}%` }}
         />
         <CardHeader className="space-y-4">
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl font-bold">Pomodoro Timer</CardTitle>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <CardTitle className="text-xl sm:text-2xl font-bold">Pomodoro Timer</CardTitle>
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -264,7 +264,7 @@ export function PomodoroSection() {
                 )}
               </Button>
               {soundEnabled && (
-                <div className="w-24">
+                <div className="w-20 sm:w-24">
                   <Slider
                     value={[volume * 100]}
                     onValueChange={(value) => setVolume(value[0] / 100)}
@@ -275,33 +275,42 @@ export function PomodoroSection() {
               )}
             </div>
           </div>
-          <div className="flex justify-center gap-2">
+          <div className="flex flex-col sm:flex-row justify-center gap-2">
             <Button
+              className="flex-1 sm:flex-initial"
               variant={currentState === TIMER_STATES.POMODORO ? "default" : "outline"}
               onClick={() => handleStateChange(TIMER_STATES.POMODORO)}
             >
               <Brain className="h-4 w-4 mr-2" />
-              Focus {timers[TIMER_STATES.POMODORO].isRunning && "(Running)"}
+              <span className="whitespace-nowrap">
+                Focus {timers[TIMER_STATES.POMODORO].isRunning && "(Running)"}
+              </span>
             </Button>
             <Button
+              className="flex-1 sm:flex-initial"
               variant={currentState === TIMER_STATES.SHORT_BREAK ? "default" : "outline"}
               onClick={() => handleStateChange(TIMER_STATES.SHORT_BREAK)}
             >
               <Coffee className="h-4 w-4 mr-2" />
-              Short Break {timers[TIMER_STATES.SHORT_BREAK].isRunning && "(Running)"}
+              <span className="whitespace-nowrap">
+                Short Break {timers[TIMER_STATES.SHORT_BREAK].isRunning && "(Running)"}
+              </span>
             </Button>
             <Button
+              className="flex-1 sm:flex-initial"
               variant={currentState === TIMER_STATES.LONG_BREAK ? "default" : "outline"}
               onClick={() => handleStateChange(TIMER_STATES.LONG_BREAK)}
             >
               <TimerIcon className="h-4 w-4 mr-2" />
-              Long Break {timers[TIMER_STATES.LONG_BREAK].isRunning && "(Running)"}
+              <span className="whitespace-nowrap">
+                Long Break {timers[TIMER_STATES.LONG_BREAK].isRunning && "(Running)"}
+              </span>
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center space-y-6">
-            <div className="text-6xl font-mono font-bold tracking-wider">
+            <div className="text-4xl sm:text-6xl font-mono font-bold tracking-wider">
               {formatTime(currentTimer.timeLeft)}
             </div>
             <div className="flex items-center gap-4">
@@ -309,6 +318,7 @@ export function PomodoroSection() {
                 size="lg"
                 onClick={toggleTimer}
                 variant={currentTimer.isRunning ? "destructive" : "default"}
+                className="w-32 sm:w-40"
               >
                 {currentTimer.isRunning ? (
                   <>

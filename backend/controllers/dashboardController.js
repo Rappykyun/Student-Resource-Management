@@ -5,6 +5,7 @@ const StudySession = require("../models/StudySession");
 const jwt = require("jsonwebtoken");
 const ChatConversation = require("../models/ChatConversation");
 const catchAsync = require("../utils/catchAsync");
+const axios = require("axios");
 
 const RASA_URL = process.env.RASA_URL || "http://localhost:5005";
 
@@ -107,6 +108,13 @@ exports.getDashboardData = catchAsync(async (req, res) => {
 exports.handleChatMessage = async (req, res) => {
   try {
     const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({
+        status: "error",
+        message: "Message is required"
+      });
+    }
+
     const userId = req.user._id;
 
     // Find or create conversation
@@ -119,39 +127,67 @@ exports.handleChatMessage = async (req, res) => {
     conversation.messages.push({
       content: message,
       type: "user",
+      timestamp: new Date()
     });
 
-    // Get response from Rasa with user context
-    const rasaResponse = await axios.post(`${RASA_URL}/webhooks/rest/webhook`, {
-      sender: userId.toString(),
-      message,
-      metadata: {
-        userId: userId.toString(),
-        userName: req.user.name
-      }
-    });
-
-    // Add bot responses
-    const botResponses = rasaResponse.data;
-    botResponses.forEach((response) => {
-      conversation.messages.push({
-        content: response.text,
-        type: "bot",
+    try {
+      // Get response from Rasa
+      const rasaResponse = await axios.post(`${RASA_URL}/webhooks/rest/webhook`, {
+        sender: userId.toString(),
+        message: message
       });
-    });
 
-    conversation.lastInteraction = new Date();
-    await conversation.save();
+      // Add bot responses
+      const botResponses = rasaResponse.data || [];
+      
+      if (botResponses.length === 0) {
+        // If Rasa returns no response, provide a default one
+        botResponses.push({
+          text: "I'm not sure how to respond to that. You can try asking about resources or courses."
+        });
+      }
 
-    res.json({
-      status: "success",
-      data: botResponses,
-    });
+      botResponses.forEach((response) => {
+        conversation.messages.push({
+          content: response.text,
+          type: "bot",
+          timestamp: new Date()
+        });
+      });
+
+      await conversation.save();
+
+      return res.json({
+        status: "success",
+        data: botResponses
+      });
+    } catch (rasaError) {
+      console.error("Rasa Error:", rasaError);
+      
+      // Save the conversation even if Rasa fails
+      await conversation.save();
+      
+      // Check if it's a connection error
+      if (rasaError.code === 'ECONNREFUSED') {
+        return res.status(503).json({
+          status: "error",
+          message: "The chatbot service is currently unavailable. Please try again later.",
+          error: "Connection refused"
+        });
+      }
+
+      return res.status(500).json({
+        status: "error",
+        message: "Failed to get response from chatbot",
+        error: rasaError.message
+      });
+    }
   } catch (error) {
     console.error("Chat Error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       status: "error",
-      message: error.message,
+      message: "Internal server error",
+      error: error.message
     });
   }
 };

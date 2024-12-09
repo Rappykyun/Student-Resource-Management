@@ -4,7 +4,6 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
-  Search,
   Menu,
   LayoutDashboard,
   BookOpen,
@@ -18,7 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -278,18 +277,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between px-4 lg:px-8">
-          <div className="flex items-center flex-1">
-            <form className="flex-1 max-w-lg">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search resources..."
-                  className="pl-10 rounded-full bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-blue-400 transition-all duration-300"
-                />
-              </div>
-            </form>
-          </div>
+        <header className="h-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-end px-4 lg:px-8 gap-4">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
